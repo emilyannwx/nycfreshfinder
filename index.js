@@ -1,14 +1,16 @@
-const http = require('node:http');
+const express = require('express')
+const app = express()
 
-const hostname = '127.0.0.1';
-const port = 3000;
+app.set('view engine', 'ejs')
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello, World!\n');
-});
+app.get('/', (req, res) => {
+  console.log("Hello World")
+  res.render('index')
+})
 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
-});
+const router = require('./routes/routes')
+
+app.use('/main', router)
+
+app.listen(3000)
+
