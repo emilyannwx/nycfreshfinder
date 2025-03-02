@@ -188,7 +188,7 @@ input {
 
 .text h2 {
     font-size: 36px;
-    margin-top: 50px;
+    margin-top: 10px;
     text-align: center;
     margin-right: 100px;
 }
@@ -256,11 +256,18 @@ input {
 
 .strap h2 {
     color: white;
-    font-size: 48px;;
+    font-size: 48px;
 }
 
 
-
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
 
 
