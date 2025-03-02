@@ -256,11 +256,18 @@ input {
 
 .strap h2 {
     color: white;
-    font-size: 48px;;
+    font-size: 48px;
 }
 
 
-
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
 
 
