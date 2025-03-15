@@ -22,17 +22,17 @@ body {
 
 h1 {
     color: black;
-    font-size: 36px;
+    font-size: 100px;
     font-weight: 600;
 }
 
 h2 {
-    font-size: 24px;
+    font-size: 36px;
     font-weight: 400;
 }
 
 h3 {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 300;
 }
 
@@ -43,13 +43,16 @@ p {
 
 header {
     background: rgba(255, 255, 255, 0.25);
+
     display: flex;
     align-items: center;
     justify-content: space-between;
+    
     height: 100px;
     padding: 0 30px;
     position: relative;
     width:100%;
+
     box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.01);
     z-index: 100;
     transition: 0.15s;
@@ -88,22 +91,28 @@ nav a:hover {
     color: #3993DD;
 }
 
-input {
+#menu {
     display: none;
 }
 
 @media (max-width: 1000px) {
     nav {
         position: absolute;
+
         top: 100px;
-        background: rgba(255, 255, 255, 0.9);
         left: 0;
-        flex-direction: column;
         width: 100%;
-        align-items: center;
         height: 0;
-        transition: 0.5s;
+
+        background: rgba(199, 242, 214, 0.85);
+        
+        flex-direction: column;
+        align-items: center;
         overflow: hidden;
+        transition: 0.5s ease;
+
+
+        backdrop-filter: blur(5px);
     }
 
     nav a:nth-child(1) {
@@ -162,13 +171,12 @@ input {
 
 #home {
     height: 90vh;
-    bottom: 75px;
 
     display: flex;
     justify-content: center;
     align-items: center;
 
-    padding: 0 75px;
+    padding: 0 75px 100px;
 
     position: relative;
 }
@@ -188,12 +196,13 @@ input {
     align-items: center;
 }
 
-.text h1 {
-    font-size: 100px;
+.text span {
+    color: #3993DD;
+    letter-spacing: 3px;
+    font-size: 110px;
 }
 
 .text h2 {
-    font-size: 36px;
     margin-top: 10px;
     text-align: center;
     margin-right: 100px;
@@ -238,11 +247,6 @@ input {
     object-fit: cover;
 }
 
-.text span {
-    color: #3993DD;
-    letter-spacing: 5px;
-    font-size: 110px;
-}
 
 
 
@@ -250,9 +254,9 @@ input {
 
 
 .strap {
-    background: rgba(57, 147, 221, 0.5);
+    background: rgba(57, 147, 221, 0.85);
 
-    position: absolute;
+    position: fixed;
     bottom: 0;
     width: 100%;
     height: 15%;
@@ -300,18 +304,23 @@ Map Page
     justify-content: center;
     align-items: center;
 
-    gap: 50px;
+    gap: 25px;
 }
 
-.searchbar {
+.map .searchbar {
     background: #f5f5f5;
     height: 100px;
     width: 100%;
 }
 
+
 .map iframe {
     border-radius: 10px;
     box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.4);
+}
+
+.mobile-map {
+    display: none;
 }
 
 /*
@@ -333,6 +342,104 @@ Analysis Page
     width: 40%;
     text-align: center;
 }
+
+
+
+/*
+-----------------
+Resources Page
+-----------------
+*/
+.search{
+    display: flex;
+    justify-content: center;
+
+    margin-top: 10px;
+}
+
+.searchbar {
+    width: max-content;
+    display: flex;
+    align-items: center;
+    padding: 8px 100px 8px 8px;
+    border-radius: 8px;
+    background: #f6f6f6;
+}
+
+.search-input {
+    font-size: 16px;
+    color: #333333;
+    outline: none;
+    border: none;
+    background: transparent;
+
+    margin-left: 20px;
+}
+
+
+.items {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    padding: 50px;
+
+    gap: 100px 100px;
+}
+
+.box {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    width: 300px;
+    min-height: 250px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.box h2 {
+    font-size: 24px;
+    color: #3993DD;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.box ul {
+    padding: 0;
+    margin-left: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.box li {
+    font-size: 16px;
+    padding: 0.5rem 0;
+    color: #4A4A4A;
+}
+
+.box button {
+    background: #ec6b4a;
+    color: white;
+
+    border: none;
+    border-radius: 99px;
+
+    width: 120px;
+    padding: 12px 24px;
+    font-size: 16px;
+    align-self: center;
+
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.box button:hover {
+    background: #da5635;
+}
+
+
 
 
 
@@ -363,19 +470,21 @@ Resources Page
 
 .links .title {
     width: 100%;
-    height: 125px;
+    height: 200px;
     background: white;
 
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+
+    text-align: center;
 }
 
 .links .images {
     width: 100%;
     height: 300px;
-    background: #bcbcbe;
+    background: #3993DD;
 
     display: flex;
     justify-content: space-evenly;
@@ -388,10 +497,158 @@ Resources Page
 
 
 footer {
-    position: absolute;
+    position: relative;
     bottom: 0;
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+
+
+
+
+
+
+/*
+---------------------
+MOBILE MEDIA QUERIES
+---------------------
+*/
+
+@media (max-width: 1000px) {
+
+    h1 {
+        font-size: 58px;
+    }
+
+    h2 {
+        font-size: 24px;
+    }
+
+    h3 {
+        font-size: 20px;
+    }
+
+
+
+    #home {
+        flex-direction: column;
+
+        gap: 2rem;
+        padding: 1rem;
+        height: auto;
+        margin-top: 2rem;
+    }
+
+    .text-container {
+        width: 100%;
+        order: 1;
+        text-align: center;
+    }
+
+    .text span {
+        font-size: 58px;
+    }
+
+    .text h2 {
+        margin: 1rem 0;
+    }
+
+    .start {
+        font-size: 18px;
+        padding: 12px 24px;
+        margin: 1rem 0;
+    }
+
+    .image-container {
+        width: 100%;
+        order: 2;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .image-container img {
+        width: 90%;
+        max-width: 300px;
+    }
+
+    .strap {
+        height: auto;
+        padding: 30px 0;
+    }
+
+    .strap h2 {
+        font-size: 24px;
+    }
+
+
+
+
+
+    .map-page {
+        flex-direction: column;
+        margin: 0;
+
+        gap:30px;
+    }
+
+    .map-page .text {
+        margin: 25px 0;
+        gap: 20px;
+        width: 100%;
+    }
+
+    .text br {
+        display: none;
+    }
+
+    .map {
+        height: 500px;
+    }
+
+    .desktop-map {
+        display: none;
+    }
+
+    .mobile-map {
+        display: block;
+    }
+
+
+
+
+
+    .analysis {
+        flex-direction: column;
+        gap:30px;
+    }
+
+    .analysis .text {
+        margin: 25px 0;
+        gap: 20px;
+        width: 100%;
+    }
+
+
+
+
+
+
+    .resources {
+        flex-direction: column;
+        gap:30px;
+    }
+
+    .resources .text {
+        margin: 25px 0;
+        gap: 20px;
+        width: 100%;
+    }
+
+    .links .images img {
+        width: 150px;
+    }
 }
