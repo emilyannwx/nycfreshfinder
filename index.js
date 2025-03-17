@@ -1,16 +1,31 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const app = express();
+const client = require('./server/database/connection')
+const session = require('express-session');
 
-app.set('view engine', 'ejs')
 
-app.get('/', (req, res) => {
-  console.log("Hello World")
-  res.render('index')
-})
+app.use(express.static("public"))
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
 
-const router = require('./routes/routes')
+app.set('view engine', 'ejs');
 
-app.use('/main', router)
+const router = require('./routes/routes');
 
-app.listen(3000)
+// Set up session middleware
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true
+}));
 
+
+  
+
+app.use('/', router);
+
+app.listen(3000);
+
+/* 
+http://localhost:3000/
+*/
