@@ -18,6 +18,8 @@ body {
     background: rgb(181,238,204);
     background: linear-gradient(180deg, rgba(181,238,204,1) 0%, rgba(167,236,161,1) 100%);
     flex: 1;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 h1 {
@@ -40,6 +42,13 @@ p {
     font-size: 14px;
     font-weight: 300;
 }
+
+
+/*
+----------
+Header
+----------
+*/
 
 header {
     background: rgba(255, 255, 255, 0.25);
@@ -168,6 +177,11 @@ nav a:hover {
 
 
 
+/*
+----------
+Home
+----------
+*/
 
 #home {
     height: 90vh;
@@ -250,9 +264,123 @@ nav a:hover {
 
 
 
+/*
+----------
+Login/Signup
+----------
+*/
+.popup {
+    display: none;
+    justify-content: center;
+    align-items: center;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.popup__content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    position: relative;
+    height: 350px;
+    width: 300px;
+
+    text-align: center;
+
+    background-color: #d4f7c5;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+}
+
+.popup--active {
+    display: flex;
+}
+
+.popup__close {
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+}
+
+.popup__content input {
+    font-size: 14px;
+    color: #333;
+    outline: none;
+    border: none;
+
+    border-radius: 7px;
+    padding: 5px;
+}
+
+.popup__content button {
+    background: #ec6b4a;
+    color: white;
+
+    border: none;
+    border-radius: 10px;
+    height: 35px;
+    font-size: 18px;
+
+    cursor: pointer;
+}
+
+.popup__content p {
+    color:#3993DD;
+}
+
+.popup__content span {
+    color:#3993DD;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.popup__content span:hover {
+    color:#333;
+}
+
+.popup__content button:hover {
+    background: #da5635;
+}
+
+.popup__close:hover {
+    color: #333;
+}
+
+.form {
+    display: none;
+}
+
+.form--active {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    gap:20px;
+}
 
 
 
+
+
+
+
+
+/*
+----------
+Strap
+----------
+*/
 .strap {
     background: rgba(57, 147, 221, 0.85);
 
@@ -323,6 +451,10 @@ Map Page
     display: none;
 }
 
+
+
+
+
 /*
 -----------------
 Analysis Page
@@ -347,7 +479,7 @@ Analysis Page
 
 /*
 -----------------
-Resources Page
+Compare Page
 -----------------
 */
 .search{

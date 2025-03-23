@@ -39,7 +39,7 @@
                 <h1>Welcome to <br><span>NYC Fresh Finder</span></h1>
                 <h2>Find nearby food resources and assistance programs <br> easily and effectively for your community.</h2>
             </div>
-            <a href="map.html"><button class="start">Get Started</button></a>
+            <button id="open-popup" class="start">Get Started</button>
         </div>
         <div class="image-container">
             <img src="/assets/imgs/guyandgirl.svg">
@@ -53,5 +53,28 @@
     <footer>
         <p>&copy; 2025 NYC Fresh Finder</p>
     </footer>
+
+    <input type="checkbox" id="popup-toggle" class="popup-toggle">
+    <div class="popup">
+        <div class="popup__content">
+            <span class="popup__close">&times;</span>
+            <form action="" class="form form--login form--active">
+                <h2>Login</h2>
+                <input type="text" placeholder="Email">
+                <input type="password" placeholder="Password">
+                <p>Forgot Password?</p>
+                <button>Login</button>
+                <p>Don't have an account? <span class="form__toggle">Sign Up</span></p>
+            </form>
+            <form action="" class="form form--signup">
+                <h2>Sign Up</h2>
+                <input type="email" placeholder="Email">
+                <input type="password" placeholder="Password">
+                <input autocomplete="postal-code" type="text" placeholder="Zip Code">
+                <button>Register</button>
+                <p>Already have an account? <span class="form__toggle">Login</span></p>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
