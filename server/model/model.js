@@ -51,7 +51,7 @@ const FoodLocation = sequelize.define('FoodLocation', {
   },
   address: { 
     type: DataTypes.STRING, 
-    allowNull: false 
+    allowNull: false
 
   },
   zip_code: { 

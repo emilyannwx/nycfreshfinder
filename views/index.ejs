@@ -4,8 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+
+    <style>
+        body
+        {
+            background: rgb(56, 54, 54);
+        }
+
+        .form-div
+        {
+            display: flex;
+            flex-direction: row;
+            width: 250px;
+        }
+        form
+        {
+            display: flex;
+            flex-direction: column;
+            width: 250px;
+        }
+        form > button
+        {
+            height: 25px;
+
+        }
+        input
+        {
+            color: white;
+            background: rgb(56, 54, 54);
+            border: none;
+            margin: 5px;
+        }
+        button
+        {
+            color: white;
+            background: rgb(87, 17, 17);
+            border: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    Hello
+    <div class="form-div">
+        <form action="/api/new_user" method="POST">
+            <label for="email"></label>
+            <input id="email" type="text" placeholder="email" name="email" required>
+            <label for="username"></label>
+            <input id="username" type="text" placeholder="Username" name="username" required>
+            <label for="password"></label>
+            <input id="password" type="password" placeholder="Password" name="password" required>
+            <label for="zip_code"></label>
+            <input id="zip_code" type="zip_code" placeholder="zip_code" name="zip_code" required>
+
+            <div class="captcha-container">
+                <img src="/api/captcha" alt="CAPTCHA" id="captcha-image">
+                <button type="button" onclick="refreshCaptcha()">Refresh</button>
+            </div>
+            <input type="text" name="captcha" placeholder="Enter the text shown above" required>
+
+            <button type="submit"></button>
+        </form>
+
+        <form action="/api/signin" id="loginForm" method="POST">
+            <label for="username"></label>
+            <input id="username" type="text" placeholder="Username" name="username" required>
+            <label for="password"></label>
+            <input id="password" type="password" placeholder="Password" name="password" required>
+            <button type="submit">submit</button>
+
+        </form>
+
+        
+    </div>
+
+    <script>
+        function refreshCaptcha() {
+            document.getElementById('captcha-image').src = '/api/captcha?' + new Date().getTime();
+        }
+
+
+        document.getElementById("loginForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            const response = await fetch("/api/signin", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+            });
+            
+            const data = await response.json();
+
+            if (response.ok) 
+            {
+                localStorage.setItem("token", data.token);
+                window.location.href = data.redirectUrl; 
+            } 
+            else 
+            {
+                alert(data.message);
+            }
+        });
+
+    </script>
 </body>
 </html>

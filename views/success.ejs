@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success</title>
+    <style>
+        body
+        {
+            background: rgb(56, 54, 54);
+        }
+        .form-div
+        {
+            display: flex;
+            flex-direction: row;
+            width: 250px;
+        }
+        form
+        {
+            display: flex;
+            flex-direction: column;
+            width: 250px;
+        }
+        form > button
+        {
+            height: 25px;
+
+        }
+        input
+        {
+            color: white;
+            background: rgb(56, 54, 54);
+            border: none;
+            margin: 5px;
+        }
+        button
+        {
+            color: white;
+            background: rgb(87, 17, 17);
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>This is the success page</h1>
+
+    <div class="form-div">
+        <form action="/api/save_location" id="save_location" method="POST">
+            <input id="username" type="text" placeholder="Username" name="location_name" value="Harvest Home East Harlem Farmers Market" required>
+            <input id="password" type="text" placeholder="Password" name="address" value="E. 104th St. & 3rd Ave." required>
+            <button type="submit"></button>
+        </form>
+
+        <form action="/api/review" id="save_review" method="POST">
+            <input id="username" type="text" placeholder="Username" name="location_name" value="Harvest Home East Harlem Farmers Market" required>
+            <input id="password" type="text" placeholder="Password" name="address" value="E. 104th St. & 3rd Ave." required>
+
+            <textarea name="review" id="review">This is a review</textarea>
+
+            <button type="submit"></button>
+        </form>
+
+        <form action="/api/edit_user" id="save_review" method="POST">
+            <label for="email"></label>
+            <input id="email" type="text" placeholder="email" name="email" required>
+            <label for="username"></label>
+            <input id="username" type="text" placeholder="Username" name="username" required>
+            <label for="password"></label>
+            <input id="password" type="password" placeholder="Password" name="password" required>
+            <label for="zip_code"></label>
+            <input id="zip_code" type="zip_code" placeholder="zip_code" name="zip_code" required>
+
+            <button type="submit"></button>
+        </form>
+
+        
+    </div>
+
+
+    <script>
+        document.getElementById("save_location").addEventListener("submit", async (event) => {
+            event.preventDefault(); // Prevent page reload
+
+            // Get values from form inputs
+            const locationName = document.querySelector("input[name='location_name']").value;
+            const address = document.querySelector("input[name='address']").value;
+
+            // Get token from localStorage
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("You must be logged in to save a location.");
+                return;
+            }
+
+            try {
+                // Send API request to save location
+                const response = await fetch("/api/save_location", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`, // Send token in headers
+                    },
+                    body: JSON.stringify({ name: locationName, address }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log(data);
+                    alert("Location saved successfully!");
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (err) {
+                console.error("Error:", err);
+                alert("Server error occurred.");
+            }
+        });
+
+
+        document.getElementById("save_review").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+
+            const token = localStorage.getItem("token"); // Get token from localStorage
+    
+            const locationName = document.querySelector("input[name='location_name']").value;
+            const address = document.querySelector("input[name='address']").value;
+
+            fetch("/api/review", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`, // Send token in headers
+                    
+                },
+                // Placeholders
+                body: JSON.stringify({
+                    name: locationName,
+                    address: address,
+                    review: "This is a review.",
+                    rating: 5,  
+                }),
+            })
+                .then(res => res.json())
+                .then(data => console.log(data))
+                .catch(err => console.error("Error:", err));
+        });
+
+
+
+
+        
+    </script>
+</body>
+</html>

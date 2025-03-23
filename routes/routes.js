@@ -1,30 +1,246 @@
-const express = require('express')
-const router = express.Router()
+const express = require('express');
+const svgCaptcha = require('svg-captcha');
+const { generateCaptcha, verifyCaptcha } = require('./captchaMiddleware');
+const client = require('../server/database/connection');
+const router = express.Router();
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+
+const { 
+    sequelize, 
+    User, 
+    FoodLocation, 
+    FoodPrice, 
+    FoodDesert, 
+    Review, 
+    SavedLocation, 
+    CommunityResource } = require("../server/model/model");
+
 
 router.get('/', (req, res) => {
-    res.send("User List")
-})
+    res.render('index');
+});
 
-router.get('/new', (req, res) => {
-    res.send("User New Form")
-})
+router.get('/success', (req, res) => {
+    res.render('success');
+});
 
-router.post('/', (req, res) => {
-  res.send("Create User")
-})
+// Generate CAPTCHA
+router.get('/api/captcha', generateCaptcha, (req, res) => {
+    res.type('svg').send(res.locals.captchaData);
+});
 
-router
-    .route("/:id")
-    .get((req, res) => {
-        res.send(`Get User with ID ${req.params.id}`)
-    })
-    .put((req, res) => {
-        res.send(`Get User with ID ${req.params.id}`)
-    })
-    .delete((req, res) => {
-        res.send(`Get User with ID ${req.params.id}`)
-    })
+// JWT Middleware
+const authMiddleware = (req, res, next) => {
+    const token = req.header("Authorization");
+    if (!token) return res.status(401).json({ message: "Unauthorized" });
+    
+    try 
+    {
+      const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
+      req.user = decoded;
+      next();
+    } 
+    catch (err) 
+    {
+      res.status(401).json({ message: "Invalid token" });
+    }
+};
+
+// Edit User
+router.put("/api/edit_user", async (req, res) => {
+    try 
+    {
+        const { email, username, password, zip_code } = req.body;
+
+        if (!username || !password || !email || !zip_code) {
+            return res.status(400).json({ error: "username and password are required." });
+        }
+        
+        const updatedAt = new Date()
+
+        // Insert into the database
+        const newUser = await client.query(
+            'INSERT INTO "Users" (username, email, password, zip_code, "updatedAt") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [username, email, password, zip_code, updatedAt]
+        );
+        res.status(201).json({ message: "User added successfully!", user: newUser.rows[0] });
+    } 
+    catch (err) 
+    {
+        console.error(err.message);
+        res.status(500).json({ error: "Unable to add user." });
+    }
+});
+
+// Create User
+router.post('/api/new_user', verifyCaptcha, async (req, res) => {
+    try 
+    {
+        const { email, username, password, zip_code } = req.body;
+
+        if (!username || !password || !email || !zip_code) {
+            return res.status(400).json({ error: "username and password are required." });
+        }
+        
+        const createdAt = new Date()
+
+        // Encrpyt password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insert into the database
+        const newUser = await client.query(
+            'INSERT INTO "Users" (username, email, password, zip_code, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [username, email, hashedPassword, zip_code, createdAt, createdAt]
+        );
+
+        res.redirect("/success");
+    } 
+    catch (err) 
+    {
+        console.error(err.message);
+        res.status(500).json({ error: "Unable to add user." });
+    }
+});
+
+// Sign In
+router.post('/api/signin', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        // Find user by username
+        const user = await User.findOne({ where: { username } });
+
+        if (!user)
+        {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+        
+        const isMatch = await bcrypt.compare(password, user.password);
+        
+        
+        if (!isMatch)
+        {
+            return res.status(400).json({ message: "Invalid credentials" });  
+        } 
+            
+        // Generate JWT Token (Fix this later)
+        const jwtSecret = process.env.JWT_SECRET || "fake_key";
+
+        const token = jwt.sign({ userId: user.user_id }, jwtSecret, { expiresIn: "1h" });
+
+        return res.json({ token, message: "Sign-in successful", redirectUrl: "/success" });
+
+    } 
+    catch (err)
+    {
+        console.log(err);
+    }
+});
+
+// Save FoodLocation
+router.post("/api/save_location", async (req, res) => {
+    try {
+        // Extract token from Authorization header
+        const authHeader = req.headers.authorization;
+        if (!authHeader) return res.status(401).json({ message: "Unauthorized: No token provided" });
+    
+        // verify token
+        const token = authHeader.split(" ")[1];
+        const decoded = jwt.verify(token, "fake_key");
+        const userId = decoded.userId;
+    
+        // Get name and address from request body
+        const { name, address } = req.body;
+    
+        if (!name || !address) {
+        return res.status(400).json({ message: "Location name and address are required" });
+        }
+    
+        console.log("Saving existing location for user:", userId, "Location Name:", name, "Address:", address);
+    
+        // Check if the user exists
+        const user = await User.findByPk(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+    
+        // Find the existing FoodLocation by name and address
+        const foodLocation = await FoodLocation.findOne({ where: { name, address } });
+        if (!foodLocation) return res.status(404).json({ message: "Food location not found" });
+    
+        // Check if the location is already saved by the user
+        const existingSaved = await SavedLocation.findOne({
+            where: { user_id: userId, location_id: foodLocation.location_id },
+        });
+    
+        if (existingSaved) {
+            return res.status(400).json({ message: "Location already saved" });
+        }
+    
+        // Save the relationship in SavedLocation
+        await SavedLocation.create({
+            user_id: userId,
+            location_id: foodLocation.location_id,
+        });
+    
+        return res.status(201).json({ message: "Food location saved successfully" });
+    } catch (err) {
+        console.error("Error saving food location:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Save Review
+router.post("/api/review", async (req, res) => {
+    try {
+        console.log(req.headers, req.headers.authorization);
+        const authHeader = req.headers.authorization;
+        
+
+        if (!authHeader) return res.status(401).json({ message: "Unauthorized: No token provided" });
+    
+        const token = authHeader.split(" ")[1];
+        const decoded = jwt.verify(token, "fake_key"); // Ensure JWT_SECRET is used
+        const userId = decoded.userId;
+    
+        // Extract data from request body
+        const { name, address, review } = req.body;
+        const rating = 5 // placeholder
+    
+        if (!review) {
+            return res.status(400).json({ message: "Review cannot be empty" });
+        }
+    
+        if (!rating || rating < 1 || rating > 5) {
+            return res.status(400).json({ message: "Rating must be between 1 and 5" });
+        }
+    
+        console.log(`Saving review for user: ${userId}, location: ${name}, rating: ${rating}`);
+    
+        // Check if user exists
+        const user = await User.findByPk(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+    
+        // Find the food location by name and address
+        const foodLocation = await FoodLocation.findOne({ where: { name, address } });
+        if (!foodLocation) return res.status(404).json({ message: "Food location not found" });
+    
+        // Save review in the database
+        await Review.create({
+            user_id: userId,
+            location_id: foodLocation.location_id,
+            comment: review,  // Ensure review text is saved
+            rating: rating,  // Save rating
+        });
+    
+        return res.status(201).json({ message: "Review saved successfully" });
+    } 
+    catch (err) 
+    {
+        console.error("Error saving review:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+  
+  
 
 
-
-module.exports = router
+module.exports = router;
