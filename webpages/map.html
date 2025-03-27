@@ -6,6 +6,11 @@
     <title>NYC Fresh Finder | Map</title>
     <link rel="stylesheet" href="styles.css">
     <script src="script.js" defer></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
 </head>
 <body>
     <!--Mobile-->
@@ -51,7 +56,11 @@
                     </div>
                 </form>
             </section>
-            <div class="map">
+            <div id="marker-map" style="height: 500px; width: 100%;"></div>
+           <!--  <div class="map">
+                
+                <div id="desktop-map" class="desktop-map"></div>
+                <div id="mobile-map" class="mobile-map"></div>
                 <iframe class="desktop-map" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d7191.713020528791!2d-73.99228150577713!3d40.72367707227942!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1741534501378!5m2!1sen!2sus" 
                 width="900" height="500" 
                 style="border:0;" 
@@ -64,13 +73,16 @@
                 style="border:0;" 
                 allowfullscreen="" 
                 loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade"></iframe>
-            </div>
+                referrerpolicy="no-referrer-when-downgrade"></iframe> -->
+         
         </section>
+
     </main>
     
     <footer>
         <p>&copy; 2025 NYC Fresh Finder</p>
     </footer>
+
+    </script>
 </body>
 </html>
