@@ -4,9 +4,9 @@ const svgCaptcha = require('svg-captcha');
 exports.generateCaptcha = (req, res, next) => {
   const captcha = svgCaptcha.create({
     size: 6,           // CAPTCHA string length
-    noise: 2,          // number of noise lines
+    noise: 5,          // number of noise lines
     color: true,       // characters will have color
-    background: '#f0f0f0' // background color
+    background: '#d0d0d0' // background color
   });
 
   // Store CAPTCHA text in session
