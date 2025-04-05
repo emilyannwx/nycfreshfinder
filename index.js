@@ -2,7 +2,8 @@ const express = require('express');
 const app = express();
 const client = require('./server/database/connection')
 const session = require('express-session');
-
+// require('dotenv').config();
+// console.log("DB_PASS:", process.env.DB_PASS);
 
 app.use(express.static("assets"))
 app.use(express.urlencoded({ extended: true }))
