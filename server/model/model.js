@@ -1,10 +1,18 @@
 const { Sequelize, DataTypes } = require('sequelize');
+require('dotenv').config();
 
 // Initialize Sequelize
-const sequelize = new Sequelize('postgres', 'postgres', 'rootUser', {
-  host: 'localhost',
+const sequelize = new Sequelize(process.env.DB, process.env.DB_USER, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
   dialect: 'postgres',
   logging: false, // Disable logging
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false, // allow self-signed certs (safe for dev)
+    },
+  },
+
 });
 
 // Define User Model
@@ -257,7 +265,7 @@ FoodPrice.belongsTo(FoodLocation, { foreignKey: 'location_id' });
 // Sync Database (Creates Tables)
 const syncDatabase = async () => {
   try {
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ schema: 'public', alter: true });
     console.log("All tables created successfully!");
   } catch (error) {
     console.error("Error syncing database:", error);
@@ -277,3 +285,5 @@ module.exports = {
   SavedLocation, 
   CommunityResource 
 };
+
+
