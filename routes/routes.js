@@ -5,7 +5,10 @@ const client = require('../server/database/connection');
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const authenticateToken = require('../routes/authenticateToken');
 
+
+// Import Database Entities
 const { 
     sequelize, 
     User, 
@@ -16,14 +19,6 @@ const {
     SavedLocation, 
     CommunityResource } = require("../server/model/model");
 
-
-router.get('/', (req, res) => {
-    res.render('index');
-});
-
-router.get('/success', (req, res) => {
-    res.render('success');
-});
 
 // Generate CAPTCHA
 router.get('/api/captcha', generateCaptcha, (req, res) => {
@@ -46,6 +41,90 @@ const authMiddleware = (req, res, next) => {
       res.status(401).json({ message: "Invalid token" });
     }
 };
+
+/* 
+    Load Pages
+*/
+
+// Home Page
+router.get('/', (req, res) => {
+    res.render('index');
+});
+
+// Maps Page
+router.get('/map', (req, res) => {
+    res.render('map');
+});
+
+// Analysis Page
+router.get('/analysis', (req, res) => {
+    res.render('analysis');
+});
+
+// Compare Page
+router.get('/compare', (req, res) => {
+    res.render('compare');
+});
+
+// Resources Page
+router.get('/resources', (req, res) => {
+    res.render('resources');
+});
+
+// Get Saved Locations
+router.get("/api/get_saved_locations", authenticateToken, async (req, res) => {
+    try 
+    {
+
+        console.log("Authenticated user ID:", req.user.userId);
+        const userId = req.user.userId;
+
+
+        const savedLocation = await SavedLocation.findAll({
+            where: {
+                user_id: userId
+            }
+        });
+
+
+        return res.json({ savedLocation });
+    } 
+    catch (err) 
+    {
+        console.error("Error retrieving locations:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Get Locations on Map Page
+router.get("/api/get_locations/search", async (req, res) => {
+    try 
+    {
+        console.log(req.query.search);
+        const zip_code = req.query.search;
+
+        const locations = await FoodLocation.findAll({
+            where: {
+                zip_code: zip_code
+            }
+        });
+
+        const locationIds = locations.map(loc => loc.location_id);
+
+        const reviews = await Review.findAll({
+            where: {
+              location_id: locationIds
+            }
+        });
+
+        return res.json({ locations, reviews });
+    } 
+    catch (err) 
+    {
+        console.error("Error retrieving locations:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
 
 // Edit User
 router.put("/api/edit_user", async (req, res) => {
@@ -77,6 +156,7 @@ router.put("/api/edit_user", async (req, res) => {
 router.post('/api/new_user', verifyCaptcha, async (req, res) => {
     try 
     {
+        console.log(req.body);
         const { email, username, password, zip_code } = req.body;
 
         if (!username || !password || !email || !zip_code) {
@@ -94,7 +174,7 @@ router.post('/api/new_user', verifyCaptcha, async (req, res) => {
             [username, email, hashedPassword, zip_code, createdAt, createdAt]
         );
 
-        res.redirect("/success");
+        res.redirect("/");
     } 
     catch (err) 
     {
@@ -128,7 +208,7 @@ router.post('/api/signin', async (req, res) => {
 
         const token = jwt.sign({ userId: user.user_id }, jwtSecret, { expiresIn: "1h" });
 
-        return res.json({ token, message: "Sign-in successful", redirectUrl: "/success" });
+        return res.json({ token, message: "Sign-in successful", redirectUrl: "/" });
 
     } 
     catch (err)
@@ -239,8 +319,5 @@ router.post("/api/review", async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 });
-  
-  
-
 
 module.exports = router;

@@ -3,111 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
-    <style>
-        body
-        {
-            background: rgb(56, 54, 54);
-        }
-
-        .form-div
-        {
-            display: flex;
-            flex-direction: row;
-            width: 250px;
-        }
-        form
-        {
-            display: flex;
-            flex-direction: column;
-            width: 250px;
-        }
-        form > button
-        {
-            height: 25px;
-
-        }
-        input
-        {
-            color: white;
-            background: rgb(56, 54, 54);
-            border: none;
-            margin: 5px;
-        }
-        button
-        {
-            color: white;
-            background: rgb(87, 17, 17);
-            border: none;
-            cursor: pointer;
-        }
-    </style>
+    <title>NYC Fresh Finder</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/js/script.js" defer></script>
 </head>
 <body>
-    <div class="form-div">
-        <form action="/api/new_user" method="POST">
-            <label for="email"></label>
-            <input id="email" type="text" placeholder="email" name="email" required>
-            <label for="username"></label>
-            <input id="username" type="text" placeholder="Username" name="username" required>
-            <label for="password"></label>
-            <input id="password" type="password" placeholder="Password" name="password" required>
-            <label for="zip_code"></label>
-            <input id="zip_code" type="zip_code" placeholder="zip_code" name="zip_code" required>
+    <!--Mobile-->
+    <input type="checkbox" id="menu">
+    <!--Mobile-->
+    <header>
+        <div class="logo">
+            <img src="/imgs/Globe_logo.png" alt="Globe Logo">
+            <h1>NYC Fresh Finder</h1>
+        </div>
 
-            <div class="captcha-container">
-                <img src="/api/captcha" alt="CAPTCHA" id="captcha-image">
-                <button type="button" onclick="refreshCaptcha()">Refresh</button>
+        <!--Mobile-->
+        <label for="menu">
+            <div></div>
+            <div></div>
+            <div></div>
+        </label>
+        <!--Mobile-->
+        <nav>
+            <a href="/">Home</a>
+            <a href="/map">Map</a>
+            <a href="/analysis">Analysis</a>
+            <a href="/compare">Compare</a>
+            <a href="/resources">Resources</a>
+        </nav>
+    </header>
+
+    <section id="home">
+        <div class="text-container">
+            <div class="text">
+                <h1>Welcome to <br><span>NYC Fresh Finder</span></h1>
+                <h2>Find nearby food resources and assistance programs <br> easily and effectively for your community.</h2>
             </div>
-            <input type="text" name="captcha" placeholder="Enter the text shown above" required>
+            <button id="open-popup" class="start">Get Started</button>
+        </div>
+        <div class="image-container">
+            <img src="/imgs/guyandgirl.svg">
+        </div>
+    </section>
 
-            <button type="submit"></button>
-        </form>
+    <section class="strap">
+        <h2>Making Healthy Food More Accessible in NYC</h2>
+    </section>
+    
+    <footer>
+        <p>&copy; 2025 NYC Fresh Finder</p>
+    </footer>
 
-        <form action="/api/signin" id="loginForm" method="POST">
-            <label for="username"></label>
-            <input id="username" type="text" placeholder="Username" name="username" required>
-            <label for="password"></label>
-            <input id="password" type="password" placeholder="Password" name="password" required>
-            <button type="submit">submit</button>
+    <input type="checkbox" id="popup-toggle" class="popup-toggle">
+    <div class="popup">
+        <div class="popup__content">
+            <span class="popup__close">&times;</span>
+            <form action="/api/signin" method="POST" class="form form--login form--active" id="loginForm">
+                <h2>Login</h2>
+                <input type="text" placeholder="Username" name="username">
+                <input type="password" placeholder="Password" name="password">
+                <p>Forgot Password?</p>
+                <button>Login</button>
+                <p>Don't have an account? <span class="form__toggle">Sign Up</span></p>
+            </form>
+            <form action="/api/new_user" method="POST" class="form form--signup">
+                <h2>Sign Up</h2>
+                <input type="email" placeholder="Email" name="email">
+                <input type="text" placeholder = "User Name" name="username">
+                <input type="password" placeholder="Password" name="password">
+                <input autocomplete="postal-code" type="text" placeholder="Zip Code" name="zip_code">
+                <div class="captcha-container">
+                    <img src="/api/captcha" alt="CAPTCHA" id="captcha-image">
+                    <button type="button" onclick="refreshCaptcha()">Refresh</button>
+                </div>
+                <input type="text" name="captcha" placeholder="Enter the text shown above" required>
 
-        </form>
-
-        
+                <button>Register</button>
+                <p>Already have an account? <span class="form__toggle">Login</span></p>
+            </form>
+        </div>
     </div>
-
-    <script>
-        function refreshCaptcha() {
-            document.getElementById('captcha-image').src = '/api/captcha?' + new Date().getTime();
-        }
-
-
-        document.getElementById("loginForm").addEventListener("submit", async (event) => {
-            event.preventDefault();
-
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-
-            const response = await fetch("/api/signin", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-            });
-            
-            const data = await response.json();
-
-            if (response.ok) 
-            {
-                localStorage.setItem("token", data.token);
-                window.location.href = data.redirectUrl; 
-            } 
-            else 
-            {
-                alert(data.message);
-            }
-        });
-
-    </script>
 </body>
 </html>

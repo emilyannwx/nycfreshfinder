@@ -57,27 +57,66 @@
                 </form>
             </section>
             <div id="marker-map" style="height: 500px; width: 100%;"></div>
-           <!--  <div class="map">
-                
-                <div id="desktop-map" class="desktop-map"></div>
-                <div id="mobile-map" class="mobile-map"></div>
-                <iframe class="desktop-map" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d7191.713020528791!2d-73.99228150577713!3d40.72367707227942!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1741534501378!5m2!1sen!2sus" 
-                width="900" height="500" 
-                style="border:0;" 
-                allowfullscreen="" 
-                loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade"></iframe>
-
-                <iframe class="mobile-map" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d7191.713020528791!2d-73.99228150577713!3d40.72367707227942!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1741534501378!5m2!1sen!2sus" 
-                width="400" height="400" 
-                style="border:0;" 
-                allowfullscreen="" 
-                loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade"></iframe> -->
-         
         </section>
-
     </main>
+
+
+    <section class="reviews-section">
+        <div class="location-info">
+            <h3 id="selected-location">No location selected</h3>
+        </div>
+
+        <div class="reviews-container">
+            <div class="reviews-header">
+                <h3>Reviews</h3>
+                <button id="create-review-btn" class="review-btn">Create Review</button>
+            </div>
+            <div class="reviews-list">
+                <p>Select a location to view reviews</p>
+            </div>
+        </div>
+
+        <div class="review-form-container">
+            <div class="review-form">
+                <span class="close-form">&times;</span>
+                <h3>Create Review</h3>
+
+                <div class="form-group">
+                    <label for="reviewer-name">Your Name:</label>
+                    <input type="text" id="reviewer-name" placeholder="Optional">
+                </div>
+
+                <div class="rating-category">
+                    <label>Price:</label>
+                    <div class="stars" data-category="price">
+                        <span class="star" data-value="1">★</span>
+                        <span class="star" data-value="2">★</span>
+                        <span class="star" data-value="3">★</span>
+                        <span class="star" data-value="4">★</span>
+                        <span class="star" data-value="5">★</span>
+                    </div>
+                </div>
+
+                <div class="rating-category">
+                    <label>Quality:</label>
+                    <div class="stars" data-category="quality">
+                        <span class="star" data-value="1">★</span>
+                        <span class="star" data-value="2">★</span>
+                        <span class="star" data-value="3">★</span>
+                        <span class="star" data-value="4">★</span>
+                        <span class="star" data-value="5">★</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="review-comment">Comments:</label>
+                    <textarea id="review-comment" placeholder="Share your experience..."></textarea>
+                </div>
+
+                <button id="submit-review" class="review-btn">Submit Review</button>
+            </div>
+        </div>
+    </section>
     
     <footer>
         <p>&copy; 2025 NYC Fresh Finder</p>
