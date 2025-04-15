@@ -88,10 +88,15 @@ document.addEventListener("DOMContentLoaded", async function () {
             }).addTo(heatmap);
 
             L.heatLayer(heatmapData, {
-                radius: 15,
-                blur: 25,
-                maxZoom: 17,
-                gradient: { 0.2: "blue", 0.5: "lime", 0.8: "red" }
+                radius: 25,
+                blur: 15,
+                maxZoom: 15,
+                gradient: { 
+                    0.1: "blue", 
+                    0.3: "cyan",
+                    0.5: "lime", 
+                    0.7: "yellow",
+                    1.0: "red" }
             }).addTo(heatmap);
 
             console.log("Heatmap loaded successfully!");
