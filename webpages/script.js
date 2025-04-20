@@ -255,3 +255,31 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 });
+
+// item cards for compare pages
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('data/bk_grocer_items_data.json')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('items-container');
+
+            data.forEach(item => {
+                const box = document.createElement('div');
+                box.className = 'box';
+                
+                box.innerHTML = `
+                    <h2>${item.item}</h2>
+                    <ul>
+                        <li>Price: ${item.price}</li>
+                        <li>Location: ${item.location}</li>
+                    </ul>
+                    <button>Edit</button>
+                `;
+                
+                container.appendChild(box);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading data:', error);
+        });
+});
