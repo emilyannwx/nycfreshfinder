@@ -1,0 +1,131 @@
+[
+    {
+      "item": "Organic Large Eggs (12ct)",
+      "price": "$4.29",
+      "location": "Fairway Market - Red Hook, Brooklyn, NY"
+    },
+    {
+      "item": "Cage-Free Eggs (12ct)",
+      "price": "$3.99",
+      "location": "Key Food - Park Slope, Brooklyn, NY"
+    },
+    {
+      "item": "Pasture-Raised Eggs (12ct)",
+      "price": "$5.49",
+      "location": "Whole Foods Market - Gowanus, Brooklyn, NY"
+    },
+    {
+      "item": "Grade A Large White Eggs (12ct)",
+      "price": "$2.89",
+      "location": "Stop & Shop - Flatbush, Brooklyn, NY"
+    },
+    {
+      "item": "Omega-3 Eggs (12ct)",
+      "price": "$4.79",
+      "location": "Trader Joe's - Downtown Brooklyn, NY"
+    },
+  
+    {
+      "item": "Almond Milk (Unsweetened, 64oz)",
+      "price": "$2.99",
+      "location": "Whole Foods Market - Gowanus, Brooklyn, NY"
+    },
+    {
+      "item": "2% Reduced Fat Milk (1 gal)",
+      "price": "$3.79",
+      "location": "Stop & Shop - Flatbush, Brooklyn, NY"
+    },
+    {
+      "item": "Oat Milk (Original, 64oz)",
+      "price": "$3.49",
+      "location": "Trader Joe's - Downtown Brooklyn, NY"
+    },
+    {
+      "item": "Whole Milk (1 gal)",
+      "price": "$3.99",
+      "location": "Fairway Market - Red Hook, Brooklyn, NY"
+    },
+    {
+      "item": "Lactose-Free Milk (64oz)",
+      "price": "$4.29",
+      "location": "Key Food - Park Slope, Brooklyn, NY"
+    },
+  
+    {
+      "item": "Whole Wheat Sandwich Bread (16oz)",
+      "price": "$2.79",
+      "location": "Trader Joe's - Downtown Brooklyn, NY"
+    },
+    {
+      "item": "Organic Whole Wheat Bread (20oz)",
+      "price": "$3.49",
+      "location": "Whole Foods Market - Gowanus, Brooklyn, NY"
+    },
+    {
+      "item": "Sprouted Whole Grain Bread",
+      "price": "$4.25",
+      "location": "Fairway Market - Red Hook, Brooklyn, NY"
+    },
+    {
+      "item": "Honey Whole Wheat Bread (16oz)",
+      "price": "$2.99",
+      "location": "Stop & Shop - Flatbush, Brooklyn, NY"
+    },
+    {
+      "item": "Whole Wheat Sandwich Rolls (6ct)",
+      "price": "$3.10",
+      "location": "Key Food - Park Slope, Brooklyn, NY"
+    },
+  
+    {
+      "item": "Organic Bananas (per lb)",
+      "price": "$0.69",
+      "location": "Trader Joe's - Downtown Brooklyn, NY"
+    },
+    {
+      "item": "Conventional Bananas (per lb)",
+      "price": "$0.49",
+      "location": "Stop & Shop - Flatbush, Brooklyn, NY"
+    },
+    {
+      "item": "Fair Trade Bananas (per lb)",
+      "price": "$0.79",
+      "location": "Whole Foods Market - Gowanus, Brooklyn, NY"
+    },
+    {
+      "item": "Mini Bananas (per lb)",
+      "price": "$0.99",
+      "location": "Fairway Market - Red Hook, Brooklyn, NY"
+    },
+    {
+      "item": "Bananas (3lb bundle)",
+      "price": "$1.99",
+      "location": "Key Food - Park Slope, Brooklyn, NY"
+    },
+  
+    {
+      "item": "Greek Yogurt (Plain, 5oz)",
+      "price": "$1.39",
+      "location": "Stop & Shop - Flatbush, Brooklyn, NY"
+    },
+    {
+      "item": "Icelandic Yogurt (Vanilla, 5oz)",
+      "price": "$1.79",
+      "location": "Whole Foods Market - Gowanus, Brooklyn, NY"
+    },
+    {
+      "item": "Strawberry Yogurt (5.3oz)",
+      "price": "$1.29",
+      "location": "Key Food - Park Slope, Brooklyn, NY"
+    },
+    {
+      "item": "Non-Dairy Coconut Yogurt (5oz)",
+      "price": "$1.89",
+      "location": "Fairway Market - Red Hook, Brooklyn, NY"
+    },
+    {
+      "item": "Low-Fat Blueberry Yogurt (5.3oz)",
+      "price": "$1.25",
+      "location": "Trader Joe's - Downtown Brooklyn, NY"
+    }
+  ]
