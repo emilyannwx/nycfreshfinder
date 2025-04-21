@@ -1,73 +1,58 @@
-document.addEventListener("DOMContentLoaded", async function () {
-    try {
-        console.log("Initializing marker map...");
+//login system
+document.addEventListener("DOMContentLoaded", function () {
+    const popup = document.querySelector(".popup");
+    const openPopup = document.getElementById("open-popup");
+    const closePopup = document.querySelector(".popup__close");
 
-        //fetch the same JSON data
-        const response = await fetch("data/bk_data.json");
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    const loginForm = document.querySelector(".form--login");
+    const signupForm = document.querySelector(".form--signup");
+    const formToggles = document.querySelectorAll(".form__toggle");
 
-        const data = await response.json();
-        console.log("JSON Data Loaded:", data);
+    openPopup.addEventListener("click", () => {
+        popup.classList.add("popup--active");
+    });
 
-        //initialize a separate map for markers
-        const markerMap = L.map("marker-map").setView([40.6782, -73.9442], 12); //brooklyn center
+    closePopup.addEventListener("click", () => {
+        popup.classList.remove("popup--active");
+    });
 
-        // add base map layer
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "&copy; OpenStreetMap contributors"
-        }).addTo(markerMap);
+    popup.addEventListener("click", (e) => {
+        if (e.target === popup) {
+            popup.classList.remove("popup--active");
+        }
+    });
 
-        // Add detailed markers
-        data.forEach(entry => {
-            const {
-                Latitude,
-                Longitude,
-                Name,
-                Type,
-                "Contact Info": ContactInfo,
-                "Street Address": StreetAddress,
-                Borough,
-                "Zip Code": ZipCode,
-                "Days of Operation": DaysOfOperation,
-                "Hours of Operation": HoursOfOperation
-            } = entry;
-
-            if (Latitude && Longitude) {
-                const marker = L.marker([parseFloat(Latitude), parseFloat(Longitude)]);
-
-                const popupContent = `
-                    <strong>${Name || "Food Resource"}</strong><br>
-                    <em>Type:</em> ${Type || "N/A"}<br>
-                    <em>Address:</em> ${StreetAddress || "N/A"}, ${Borough || ""}, NY ${ZipCode || ""}<br>
-                    <em>Contact:</em> ${ContactInfo || "N/A"}<br>
-                    <em>Open:</em> ${DaysOfOperation || "N/A"}<br>
-                    <em>Hours:</em> ${HoursOfOperation || "N/A"}
-                `;
-
-                marker.bindPopup(popupContent);
-                marker.bindTooltip(Name || "Food Resource");
-                marker.addTo(markerMap);
+    formToggles.forEach((toggle) => {
+        toggle.addEventListener("click", () => {
+            if (loginForm.classList.contains("form--active")) {
+                loginForm.classList.remove("form--active");
+                signupForm.classList.add("form--active");
+            } else {
+                signupForm.classList.remove("form--active");
+                loginForm.classList.add("form--active");
             }
         });
+    });
 
-        console.log("Marker map loaded!");
-    } catch (error) {
-        console.error("Error loading marker map:", error);
-    }
+    loginForm.classList.add("form--active");
 });
 
+
+
+
+//leaflet map
 document.addEventListener("DOMContentLoaded", async function () {
     try {
-        console.log("Initializing heatmap...");
+        console.log("Initializing maps...");
 
-        // Load JSON data
+        //load JSON data
         const response = await fetch("data/bk_data.json");
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
         const data = await response.json();
         console.log("JSON Data Loaded:", data);
 
-        // Extract latitude and longitude for heatmap
+        //extract latitude and longitude for heatmap
         const heatmapData = data
             .filter(entry => entry.Latitude && entry.Longitude)
             .map(entry => [parseFloat(entry.Latitude), parseFloat(entry.Longitude)]);
@@ -78,7 +63,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             throw new Error("No valid latitude/longitude points found in JSON!");
         }
 
-        // Initialize heatmap if the container exists
+        //heatmap
+        //maybe add a legend?
         const heatmapContainer = document.getElementById("heatmap");
         if (heatmapContainer) {
             const heatmap = L.map("heatmap").setView([40.6782, -73.9442], 12);
@@ -86,23 +72,187 @@ document.addEventListener("DOMContentLoaded", async function () {
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
                 attribution: "&copy; OpenStreetMap contributors"
             }).addTo(heatmap);
-
+            //
             L.heatLayer(heatmapData, {
-                radius: 25,
-                blur: 15,
+                radius: 35,
+                blur: 20,
                 maxZoom: 15,
                 gradient: { 
-                    0.1: "blue", 
-                    0.3: "cyan",
-                    0.5: "lime", 
-                    0.7: "yellow",
-                    1.0: "red" }
+                0.1: "blue", 
+                0.3: "cyan",
+                0.5: "lime", 
+                0.7: "yellow",
+                1.0: "red" }
             }).addTo(heatmap);
 
             console.log("Heatmap loaded successfully!");
+            const legend = L.control({ position: "bottomright" });
+
+            legend.onAdd = function(map) {
+                const div = L.DomUtil.create("div", "legend");
+                div.innerHTML += "<h4><strong>Intensity</strong></h4>";
+                div.innerHTML += '<div class="gradient-bar"></div>';
+                div.innerHTML += '<div class="labels"><span class="low-label">Low</span><span class="high-label">High</span></div>';
+                return div;
+            };
+
+            legend.addTo(heatmap);
+        }
+
+        //marker map
+        const markerMapContainer = document.getElementById("marker-map");
+    if (markerMapContainer) {
+        const markerMap = L.map("marker-map").setView([40.6782, -73.9442], 12);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(markerMap);
+
+        //add markers for each food resource
+        data.forEach(entry => {
+            if (entry.Latitude && entry.Longitude) {
+                const popupContent = `
+                    <strong>${entry.Name || "Food Resource"}</strong><br>
+                    <em>Type:</em> ${entry.Type || "N/A"}<br>
+                    <em>Contact:</em> ${entry["Contact Info"] || "N/A"}<br>
+                    <em>Address:</em> ${entry["Street Address"] || "N/A"}, ${entry.Borough || "N/A"}, ${entry["Zip Code"] || "N/A"}<br>
+                    <em>Days:</em> ${entry["Days of Operation"] || "N/A"}<br>
+                    <em>Hours:</em> ${entry["Hours of Operation"] || "N/A"}
+                `;
+
+                L.marker([parseFloat(entry.Latitude), parseFloat(entry.Longitude)])
+                    .bindPopup(popupContent)
+                    .addTo(markerMap);
+            }
+        });
+
+        console.log("Marker map loaded successfully!");
         }
     } catch (error) {
-        console.error("Error loading JSON:", error);
+        console.error("Error loading the marker map:", error);
+    }
+
+
+    //review system
+    let reviewStore = {};
+    let currentLocation = null;
+    let currentRatings = { price: 0, quality: 0 };
+
+    const createReviewBtn = document.getElementById('create-review-btn');
+    const reviewFormContainer = document.querySelector('.review-form-container');
+    const closeFormBtn = document.querySelector('.close-form');
+    const submitReviewBtn = document.getElementById('submit-review');
+    const reviewsList = document.querySelector('.reviews-list');
+    const selectedLocation = document.getElementById('selected-location');
+
+    //stars
+    function initStars() {
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', function () {
+                const category = this.parentElement.dataset.category;
+                const value = parseInt(this.dataset.value);
+                currentRatings[category] = value;
+
+                this.parentElement.querySelectorAll('.star').forEach((s, i) => {
+                    s.classList.toggle('active', i < value);
+                });
+            });
+        });
+    }
+    initStars();
+
+    //get location info
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('leaflet-marker-icon')) {
+            const popup = document.querySelector('.leaflet-popup-content');
+            if (popup) {
+                const nameMatch = popup.innerHTML.match(/<strong>(.*?)<\/strong>/);
+                if (nameMatch) {
+                    const locationName = nameMatch[1].trim();
+                    currentLocation = { Name: locationName };
+                    selectedLocation.textContent = locationName;
+                    displayReviewsForLocation(locationName);
+                }
+            }
+        }
+    });
+
+    //open overlay
+    if (createReviewBtn) {
+        createReviewBtn.addEventListener('click', function () {
+            if (!currentLocation) {
+                alert('Please select a location first by clicking on a map marker.');
+                return;
+            }
+            reviewFormContainer.classList.add('active');
+        });
+    }
+
+    //close overlay
+    if (closeFormBtn) {
+        closeFormBtn.addEventListener('click', function () {
+            reviewFormContainer.classList.remove('active');
+        });
+    }
+
+    //submit
+    if (submitReviewBtn) {
+        submitReviewBtn.addEventListener('click', function () {
+            const name = document.getElementById('reviewer-name')?.value.trim() || 'Anonymous';
+            const comment = document.getElementById('review-comment')?.value.trim() || 'No comment provided.';
+
+            if (currentRatings.price === 0 || currentRatings.quality === 0) {
+                alert('Please rate both price and quality.');
+                return;
+            }
+
+            const review = {
+                locationName: currentLocation.Name,
+                name,
+                comment,
+                ratings: { ...currentRatings },
+                date: new Date().toLocaleDateString()
+            };
+
+            if (!reviewStore[review.locationName]) reviewStore[review.locationName] = [];
+            reviewStore[review.locationName].push(review);
+            displayReviewsForLocation(review.locationName);
+
+            // Reset form
+            document.getElementById('reviewer-name').value = '';
+            document.getElementById('review-comment').value = '';
+            document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+            currentRatings = { price: 0, quality: 0 };
+            reviewFormContainer.classList.remove('active');
+        });
+    }
+
+    //display reviews
+    function displayReviewsForLocation(locationName) {
+        reviewsList.innerHTML = '';
+        const reviews = reviewStore[locationName] || [];
+
+        if (reviews.length === 0) {
+            reviewsList.innerHTML = '<p>No reviews yet. Be the first to review!</p>';
+            return;
+        }
+
+        reviews.forEach(review => {
+            const div = document.createElement('div');
+            div.className = 'review-item';
+            div.innerHTML = `
+                <div class="review-header">
+                    <span class="review-author">${review.name}</span>
+                    <span class="review-date">${review.date}</span>
+                </div>
+                <div class="review-ratings">
+                    <div class="review-rating"><span>Price:</span><span>${'★'.repeat(review.ratings.price)}</span></div>
+                    <div class="review-rating"><span>Quality:</span><span>${'★'.repeat(review.ratings.quality)}</span></div>
+                </div>
+                <div class="review-content">${review.comment}</div>
+            `;
+            reviewsList.appendChild(div);
+        });
     }
 });
 
