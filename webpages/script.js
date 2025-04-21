@@ -256,30 +256,63 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 });
 
-// item cards for compare pages
+
+// item cards for compare pages + search, price filter
 document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('items-container');
+    const searchBar = document.getElementById('search-bar');
+    const minPriceInput = document.getElementById('min-price');
+    const maxPriceInput = document.getElementById('max-price');
+
+    let foodItems = [];
+
     fetch('data/bk_grocer_items_data.json')
         .then(response => response.json())
         .then(data => {
-            const container = document.getElementById('items-container');
-
-            data.forEach(item => {
-                const box = document.createElement('div');
-                box.className = 'box';
-                
-                box.innerHTML = `
-                    <h2>${item.item}</h2>
-                    <ul>
-                        <li>Price: ${item.price}</li>
-                        <li>Location: ${item.location}</li>
-                    </ul>
-                    <button>Edit</button>
-                `;
-                
-                container.appendChild(box);
-            });
+            foodItems = data;
+            renderCards(foodItems);
         })
         .catch(error => {
             console.error('Error loading data:', error);
         });
+
+    function renderCards(items) {
+        container.innerHTML = ''; //clear existing cards
+        items.forEach(item => {
+            const box = document.createElement('div');
+            box.className = 'box';
+
+            box.innerHTML = `
+                <h2>${item.item}</h2>
+                <ul>
+                    <li>Price: ${item.price}</li>
+                    <li>Location: ${item.location}</li>
+                </ul>
+                <button>Edit</button>
+            `;
+
+            container.appendChild(box);
+        });
+    }
+
+    function filterItems() {
+        const query = searchBar.value.toLowerCase();
+        const min = parseFloat(minPriceInput.value) || 0;
+        const max = parseFloat(maxPriceInput.value) || Infinity;
+    
+        const filtered = foodItems.filter(item => {
+            const titleMatch = item.item.toLowerCase().includes(query);
+            const priceValue = parseFloat(item.price.replace(/[^0-9.]/g, ''));
+            const priceMatch = priceValue >= min && priceValue <= max;
+    
+            return titleMatch && priceMatch;
+        });
+    
+        renderCards(filtered);
+    }
+
+    //add listeners
+    searchBar.addEventListener('input', filterItems);
+    minPriceInput.addEventListener('input', filterItems);
+    maxPriceInput.addEventListener('input', filterItems);
 });
