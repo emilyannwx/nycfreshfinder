@@ -39,7 +39,7 @@
                 <h1>Welcome to <br><span>NYC Fresh Finder</span></h1>
                 <h2>Find nearby food resources and assistance programs <br> easily and effectively for your community.</h2>
             </div>
-            <button id="open-popup" class="start">Get Started</button>
+            <button id="open-popup" class="start" onclick="openPopup()">Get Started</button>
         </div>
         <div class="image-container">
             <img src="/imgs/guyandgirl.svg">
@@ -57,14 +57,14 @@
     <input type="checkbox" id="popup-toggle" class="popup-toggle">
     <div class="popup">
         <div class="popup__content">
-            <span class="popup__close">&times;</span>
-            <form action="/api/signin" method="POST" class="form form--login form--active" id="loginForm">
+            <span class="popup__close" onclick="closePopup()">&times;</span>
+            <form class="form form--login form--active" id="loginForm" >
                 <h2>Login</h2>
                 <input type="text" placeholder="Username" name="username">
                 <input type="password" placeholder="Password" name="password">
                 <p>Forgot Password?</p>
-                <button>Login</button>
-                <p>Don't have an account? <span class="form__toggle">Sign Up</span></p>
+                <button type="submit">Login</button>
+                <p>Don't have an account? <span class="form__toggle" onclick="redirectSignUp(this)">Sign Up</span></p>
             </form>
             <form action="/api/new_user" method="POST" class="form form--signup">
                 <h2>Sign Up</h2>
@@ -72,14 +72,14 @@
                 <input type="text" placeholder = "User Name" name="username">
                 <input type="password" placeholder="Password" name="password">
                 <input autocomplete="postal-code" type="text" placeholder="Zip Code" name="zip_code">
-                <div class="captcha-container">
+                <!-- <div class="captcha-container">
                     <img src="/api/captcha" alt="CAPTCHA" id="captcha-image">
                     <button type="button" onclick="refreshCaptcha()">Refresh</button>
                 </div>
-                <input type="text" name="captcha" placeholder="Enter the text shown above" required>
+                <input type="text" name="captcha" placeholder="Enter the text shown above" required> -->
 
                 <button>Register</button>
-                <p>Already have an account? <span class="form__toggle">Login</span></p>
+                <p>Already have an account? <span class="form__toggle" onclick="redirectSignUp(this)">Login</span></p>
             </form>
         </div>
     </div>

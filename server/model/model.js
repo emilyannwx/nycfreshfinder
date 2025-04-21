@@ -59,7 +59,7 @@ const FoodLocation = sequelize.define('FoodLocation', {
   },
   address: { 
     type: DataTypes.STRING, 
-    allowNull: false
+    allowNull: true
 
   },
   zip_code: { 
@@ -69,12 +69,12 @@ const FoodLocation = sequelize.define('FoodLocation', {
   },
   latitude: { 
     type: DataTypes.FLOAT, 
-    allowNull: false 
+    allowNull: true 
   },
   longitude: { 
     type: 
     DataTypes.FLOAT, 
-    allowNull: false 
+    allowNull: true 
   },
   type: { 
     type: DataTypes.ENUM('supermarket', 'food pantry', 'farmers market', 'restaurant', 'bodega', 'community fridge'), 
@@ -185,7 +185,11 @@ const Review = sequelize.define('Review', {
       key: 'location_id' 
     }
   },
-  rating: { 
+  price_rating: { 
+    type: DataTypes.INTEGER, 
+    allowNull: false
+  },
+  quality_rating: {
     type: DataTypes.INTEGER, 
     allowNull: false
   },

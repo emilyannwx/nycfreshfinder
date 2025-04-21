@@ -39,54 +39,99 @@
 
     <main class="map-page">
         <section class="text">
-            <h1>Food Search</h1>
-            <h3>Discover nearby food resources and assistance programs such as pantries, farmers' markets, supermarkets, and more.</h3>
-            <br>
-            <br>
-            <h3><strong>Just enter your Zip Code or Borough</strong></h3>
+            <div class="words">
+                <h1>Food Search</h1>
+                <h3>Discover nearby food resources and assistance programs such as pantries, farmers' markets, supermarkets, and more.</h3>
+                <h3><strong>Just enter your Zip Code</strong></h3>
+            </div>
+            <div class="location-container">
+                <h2>Locations in <span id="location-area"></span></h2>
+                <div class="location-list">
+                    <!-- <div class="location-item">
+                        <h3>GREENPOINT REFORMED CHURCH FOOD PANTRY</h3>
+                        <p><span>Address:</span> 136 MILTON STREET, Brooklyn, 11222</p>
+                        <p><span>Rating:</span> ★★★★</p>
+                    </div> -->
+                    
+                </div>
+            </div>
         </section>
 
         <section class="map-section">
             <section class="search">
-                <form id="find-location" onsubmit="findLocation();return false">
+                <form id="find-location" onsubmit="findLocation(); return false">
                     <div class="searchbar">
                         <img src="/imgs/search.svg">
-                        <input class="search-input" type="text" placeholder="Search for a food item..." name="location">
+                        <input class="search-input" type="text" placeholder="Enter a Zip Code">
                     </div>
                 </form>
             </section>
             <div id="marker-map" style="height: 500px; width: 100%;"></div>
-           <!--  <div class="map">
-                
-                <div id="desktop-map" class="desktop-map"></div>
-                <div id="mobile-map" class="mobile-map"></div>
-                <iframe class="desktop-map" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d7191.713020528791!2d-73.99228150577713!3d40.72367707227942!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1741534501378!5m2!1sen!2sus" 
-                width="900" height="500" 
-                style="border:0;" 
-                allowfullscreen="" 
-                loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade"></iframe>
-
-                <iframe class="mobile-map" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d7191.713020528791!2d-73.99228150577713!3d40.72367707227942!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1741534501378!5m2!1sen!2sus" 
-                width="400" height="400" 
-                style="border:0;" 
-                allowfullscreen="" 
-                loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade"></iframe> -->
-         
         </section>
-            
     </main>
 
-    <div id="saved-locations">
 
-    </div>
+    <section class="reviews-section">
+        <div class="location-info">
+            <h3 id="selected-location">No location selected</h3>
+        </div>
 
-    <div id="locations">
-    </div>
+        <div class="reviews-container">
+            <div class="reviews-header">
+                <h3>Reviews</h3>
+                <button id="create-review-btn" class="review-btn" onclick="openReviewForm()">Create Review</button>
+            </div>
+            <div class="reviews-list">
+                <p>Select a location to view reviews</p>
+            </div>
+        </div>
+
+        <div class="review-form-container">
+            <form class="review-form" onsubmit="saveReview(); return false;">
+                <span class="close-form" onclick="closeReviewForm();">&times;</span>
+                <h3>Create Review</h3>
+
+                <div class="form-group">
+                    <label for="reviewer-name">Your Name:</label>
+                    <input type="text" id="reviewer-name" placeholder="Optional">
+                </div>
+
+                <div class="rating-category">
+                    <label>Price:</label>
+                    <div class="stars" data-category="price">
+                        <span class="star" data-value="1">★</span>
+                        <span class="star" data-value="2">★</span>
+                        <span class="star" data-value="3">★</span>
+                        <span class="star" data-value="4">★</span>
+                        <span class="star" data-value="5">★</span>
+                    </div>
+                </div>
+
+                <div class="rating-category">
+                    <label>Quality:</label>
+                    <div class="stars" data-category="quality">
+                        <span class="star" data-value="1">★</span>
+                        <span class="star" data-value="2">★</span>
+                        <span class="star" data-value="3">★</span>
+                        <span class="star" data-value="4">★</span>
+                        <span class="star" data-value="5">★</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="review-comment">Comments:</label>
+                    <textarea id="review-comment" placeholder="Share your experience..."></textarea>
+                </div>
+
+                <button id="submit-review" class="review-btn">Submit Review</button>
+            </form>
+        </div>
+    </section>
     
     <footer>
         <p>&copy; 2025 NYC Fresh Finder</p>
     </footer>
+
+    </script>
 </body>
 </html>

@@ -3,9 +3,9 @@ const app = express();
 const client = require('./server/database/connection')
 const session = require('express-session');
 
-app.use(express.static("assets"))
-app.use(express.urlencoded({ extended: true }))
-app.use(express.json())
+app.use(express.static("assets"));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.set('view engine', 'ejs');
 

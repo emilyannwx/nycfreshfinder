@@ -126,6 +126,32 @@ router.get("/api/get_locations/search", async (req, res) => {
     }
 });
 
+// Get Reviews
+router.get("/api/get_reviews", async (req, res) => {
+    try {
+      const { name } = req.query;
+  
+      const location = await FoodLocation.findOne({
+        where: { name }
+      });
+  
+      if (!location) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+  
+      const reviews = await Review.findAll({
+        where: { location_id: location.location_id } // or location.id if that's your PK name
+      });
+  
+      return res.json({ reviews });
+  
+    } catch (err) {
+      console.error("Error getting reviews:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+});
+  
+
 // Edit User
 router.put("/api/edit_user", async (req, res) => {
     try 
@@ -153,7 +179,7 @@ router.put("/api/edit_user", async (req, res) => {
 });
 
 // Create User
-router.post('/api/new_user', verifyCaptcha, async (req, res) => {
+router.post('/api/new_user', async (req, res) => {
     try 
     {
         console.log(req.body);
@@ -185,10 +211,12 @@ router.post('/api/new_user', verifyCaptcha, async (req, res) => {
 
 // Sign In
 router.post('/api/signin', async (req, res) => {
-    const { username, password } = req.body;
     try {
+        const { username, password } = req.body;
         // Find user by username
         const user = await User.findOne({ where: { username } });
+
+        console.log("Token payload:", { userId: user.user_id });
 
         if (!user)
         {
@@ -206,9 +234,11 @@ router.post('/api/signin', async (req, res) => {
         // Generate JWT Token (Fix this later)
         const jwtSecret = process.env.JWT_SECRET || "fake_key";
 
-        const token = jwt.sign({ userId: user.user_id }, jwtSecret, { expiresIn: "1h" });
+        // const token = jwt.sign({ userId: user.user_id }, jwtSecret, { expiresIn: "1h" });
 
-        return res.json({ token, message: "Sign-in successful", redirectUrl: "/" });
+        const token = jwt.sign({ userId: user.user_id }, jwtSecret);
+
+        return res.json({ token, message: "Sign-in successful"});
 
     } 
     catch (err)
@@ -271,36 +301,23 @@ router.post("/api/save_location", async (req, res) => {
 // Save Review
 router.post("/api/review", async (req, res) => {
     try {
-        console.log(req.headers, req.headers.authorization);
-        const authHeader = req.headers.authorization;
-        
-
-        if (!authHeader) return res.status(401).json({ message: "Unauthorized: No token provided" });
-    
-        const token = authHeader.split(" ")[1];
-        const decoded = jwt.verify(token, "fake_key"); // Ensure JWT_SECRET is used
-        const userId = decoded.userId;
-    
+        console.log("BODY:", JSON.stringify(req.body));
         // Extract data from request body
-        const { name, address, review } = req.body;
-        const rating = 5 // placeholder
-    
+        const { name, token, review, price_rating, quality_rating } = req.body;
+        const decoded = jwt.verify(token, "fake_key", { ignoreExpiration: true }); // Ensure JWT_SECRET is used
+        console.log(decoded);
+        const userId = decoded.userId;
+
         if (!review) {
             return res.status(400).json({ message: "Review cannot be empty" });
         }
-    
-        if (!rating || rating < 1 || rating > 5) {
-            return res.status(400).json({ message: "Rating must be between 1 and 5" });
-        }
-    
-        console.log(`Saving review for user: ${userId}, location: ${name}, rating: ${rating}`);
     
         // Check if user exists
         const user = await User.findByPk(userId);
         if (!user) return res.status(404).json({ message: "User not found" });
     
-        // Find the food location by name and address
-        const foodLocation = await FoodLocation.findOne({ where: { name, address } });
+        // Find the food location by name
+        const foodLocation = await FoodLocation.findOne({ where: { name } });
         if (!foodLocation) return res.status(404).json({ message: "Food location not found" });
     
         // Save review in the database
@@ -308,10 +325,11 @@ router.post("/api/review", async (req, res) => {
             user_id: userId,
             location_id: foodLocation.location_id,
             comment: review,  // Ensure review text is saved
-            rating: rating,  // Save rating
+            price_rating: price_rating,  // Save ratingm
+            quality_rating: quality_rating,
         });
-    
-        return res.status(201).json({ message: "Review saved successfully" });
+
+        return res.json({ message: "Sign-in successful"});
     } 
     catch (err) 
     {
