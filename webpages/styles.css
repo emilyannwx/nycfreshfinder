@@ -729,7 +729,7 @@ Analysis Page
 
 .analysis {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 
@@ -737,8 +737,9 @@ Analysis Page
 }
 
 .analysis .text {
-    width: 40%;
+    width: 100%;
     text-align: center;
+    padding-bottom: 50px;
 }
 
 
