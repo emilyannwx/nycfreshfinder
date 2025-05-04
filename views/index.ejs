@@ -62,14 +62,14 @@
                 <h2>Login</h2>
                 <input type="text" placeholder="Username" name="username">
                 <input type="password" placeholder="Password" name="password">
-                <p>Forgot Password?</p>
+                <span class="form__toggle" onclick="redirectSignUp(this)">Forgot Password?</span>
                 <button type="submit">Login</button>
                 <p>Don't have an account? <span class="form__toggle" onclick="redirectSignUp(this)">Sign Up</span></p>
             </form>
             <form action="/api/new_user" method="POST" class="form form--signup">
                 <h2>Sign Up</h2>
                 <input type="email" placeholder="Email" name="email">
-                <input type="text" placeholder = "User Name" name="username">
+                <input type="text" placeholder = "Username" name="username">
                 <input type="password" placeholder="Password" name="password">
                 <input autocomplete="postal-code" type="text" placeholder="Zip Code" name="zip_code">
                 <!-- <div class="captcha-container">
@@ -81,6 +81,21 @@
                 <button>Register</button>
                 <p>Already have an account? <span class="form__toggle" onclick="redirectSignUp(this)">Login</span></p>
             </form>
+            <form action="/api/request_new_password" method="POST" class="form form--forgot-password">
+                <h2>Sign Up</h2>
+                <input type="email" placeholder="Email" name="email">
+                <input type="text" placeholder = "Username" name="username">
+                <input autocomplete="postal-code" type="text" placeholder="Zip Code" name="zip_code">
+                <!-- <div class="captcha-container">
+                    <img src="/api/captcha" alt="CAPTCHA" id="captcha-image">
+                    <button type="button" onclick="refreshCaptcha()">Refresh</button>
+                </div>
+                <input type="text" name="captcha" placeholder="Enter the text shown above" required> -->
+
+                <button>Request</button>
+                <p><span class="form__toggle" onclick="redirectSignUp(this)">Login</span></p>
+            </form>
+            
         </div>
     </div>
 </body>

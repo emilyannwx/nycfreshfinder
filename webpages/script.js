@@ -38,8 +38,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-
-
 //leaflet map
 document.addEventListener("DOMContentLoaded", async function () {
     try {

@@ -37,80 +37,24 @@
         <section class="search">
             <form>
                 <div class="searchbar">
-                    <img src="imgs/search.svg">
-                    <input class="search-input" type="search" placeholder="Search for a food item...">
+                    <img src="/imgs/search.svg">
+                    <input id="search-bar" class="search-input" type="search" placeholder="Search for a food item...">
                 </div>
             </form>
         </section>
 
-        <section class="items">
-            <div class="box">
-                <h2>Title</h2>
-
-                <ul>
-                    <li>Nutrition</li>
-                    <li>Price</li>
-                    <li>Location</li>
-                </ul>
-
-                <button>Add</button>
-            </div>
-            <div class="box">
-                <h2>Title</h2>
-
-                <ul>
-                    <li>Nutrition</li>
-                    <li>Price</li>
-                    <li>Location</li>
-                </ul>
-
-                <button>Add</button>
-            </div>
-            <div class="box">
-                <h2>Title</h2>
-
-                <ul>
-                    <li>Nutrition</li>
-                    <li>Price</li>
-                    <li>Location</li>
-                </ul>
-
-                <button>Add</button>
-            </div>
-            <div class="box">
-                <h2>Title</h2>
-
-                <ul>
-                    <li>Nutrition</li>
-                    <li>Price</li>
-                    <li>Location</li>
-                </ul>
-
-                <button>Add</button>
-            </div>
-            <div class="box">
-                <h2>Title</h2>
-
-                <ul>
-                    <li>Nutrition</li>
-                    <li>Price</li>
-                    <li>Location</li>
-                </ul>
-
-                <button>Add</button>
-            </div>
-            <div class="box">
-                <h2>Title</h2>
-
-                <ul>
-                    <li>Nutrition</li>
-                    <li>Price</li>
-                    <li>Location</li>
-                </ul>
-
-                <button>Add</button>
-            </div>
+        <section class="price-filter" style="text-align:center; margin: 1rem 0;">
+            <label>
+                Min Price: $
+                <input type="number" id="min-price" step="0.01" placeholder="0.00">
+            </label>
+            <label style="margin-left: 1rem;">
+                Max Price: $
+                <input type="number" id="max-price" step="0.01" placeholder="5.00">
+            </label>
         </section>
+
+        <section class="items" id="items-container"></section>
     </main>
     
     <footer>

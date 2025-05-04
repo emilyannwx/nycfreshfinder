@@ -6,6 +6,8 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const authenticateToken = require('../routes/authenticateToken');
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 
 // Import Database Entities
@@ -129,21 +131,28 @@ router.get("/api/get_locations/search", async (req, res) => {
 // Get Reviews
 router.get("/api/get_reviews", async (req, res) => {
     try {
-      const { name } = req.query;
-  
-      const location = await FoodLocation.findOne({
-        where: { name }
-      });
-  
-      if (!location) {
-        return res.status(404).json({ message: "Location not found" });
-      }
-  
-      const reviews = await Review.findAll({
-        where: { location_id: location.location_id } // or location.id if that's your PK name
-      });
-  
-      return res.json({ reviews });
+        const { name } = req.query;
+
+        const location = await FoodLocation.findOne({
+            where: { name }
+        });
+
+        if (!location) {
+            return res.status(404).json({ message: "Location not found" });
+        }
+
+        const reviews = await Review.findAll({
+            where: { location_id: location.location_id }
+        });
+
+        const userIds = [...new Set(reviews.map(r => r.user_id))]; // unique user IDs
+
+        const users = await User.findAll({
+            where: { user_id: userIds }
+        });
+
+
+        return res.json({ reviews, users });
   
     } catch (err) {
       console.error("Error getting reviews:", err);
@@ -247,6 +256,50 @@ router.post('/api/signin', async (req, res) => {
     }
 });
 
+// Forgot Password
+router.post('/api/request_new_password', async (req, res) => {
+    const { email, username, zip_code } = req.body;
+
+    try {
+        const user = await User.findOne({ where: { email, username, zip_code } });
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Generate token
+        const token = crypto.randomBytes(32).toString("hex");
+        const tokenExpires = Date.now() + 3600000; // 1 hour from now
+
+        await user.update({
+            reset_token: token,
+            reset_token_expiry: tokenExpires
+        });
+
+        // Send email
+        const resetLink = `https://domain.com/reset-password?token=${token}`; // 
+        
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        await transporter.sendMail({
+            to: user.email,
+            subject: "Password Reset Request",
+            html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`
+        });
+
+        return res.status(200).json({ message: "Reset email sent" });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Server error" });
+    }
+
+});
+
 // Save FoodLocation
 router.post("/api/save_location", async (req, res) => {
     try {
@@ -329,7 +382,7 @@ router.post("/api/review", async (req, res) => {
             quality_rating: quality_rating,
         });
 
-        return res.json({ message: "Sign-in successful"});
+        return res.json({ user, message: "Sign-in successful"});
     } 
     catch (err) 
     {
