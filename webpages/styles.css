@@ -290,7 +290,8 @@ Login/Signup
     align-items: center;
 
     position: relative;
-    height: 350px;
+    height: auto;
+    padding: 50px 0;
     width: 300px;
 
     text-align: center;
@@ -319,8 +320,8 @@ Login/Signup
     outline: none;
     border: none;
 
-    border-radius: 7px;
-    padding: 5px;
+    border-radius: 8px;
+    padding: 8px;
 }
 
 .popup__content button {
@@ -367,6 +368,7 @@ Login/Signup
     justify-content: center;
     height: 100%;
     gap:20px;
+    max-width: 85%;
 }
 
 

@@ -4,12 +4,28 @@ document.addEventListener("DOMContentLoaded", function () {
     const openPopup = document.getElementById("open-popup");
     const closePopup = document.querySelector(".popup__close");
 
-    const loginForm = document.querySelector(".form--login");
-    const signupForm = document.querySelector(".form--signup");
-    const formToggles = document.querySelectorAll(".form__toggle");
+    const forms = {
+        login: document.querySelector(".form--login"),
+        signup: document.querySelector(".form--signup"),
+        reset: document.querySelector(".form--reset")
+    };
+
+    const formNavigationMap = {
+        'sign up': 'signup',
+        'login': 'login',
+        'forgot password?': 'reset'
+    };
+
+    function showForm(formType) {
+        Object.values(forms).forEach(form => {
+            form.classList.remove("form--active");
+        });
+        forms[formType].classList.add("form--active");
+    }
 
     openPopup.addEventListener("click", () => {
         popup.classList.add("popup--active");
+        showForm('login');
     });
 
     closePopup.addEventListener("click", () => {
@@ -22,19 +38,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    formToggles.forEach((toggle) => {
-        toggle.addEventListener("click", () => {
-            if (loginForm.classList.contains("form--active")) {
-                loginForm.classList.remove("form--active");
-                signupForm.classList.add("form--active");
-            } else {
-                signupForm.classList.remove("form--active");
-                loginForm.classList.add("form--active");
+    document.querySelectorAll(".form__toggle").forEach((toggle) => {
+        toggle.addEventListener("click", (e) => {
+            e.preventDefault();
+            const toggleText = toggle.textContent.trim().toLowerCase();
+            const formType = formNavigationMap[toggleText];
+            
+            if (formType) {
+                showForm(formType);
             }
         });
     });
 
-    loginForm.classList.add("form--active");
+    showForm('login');
 });
 
 
