@@ -77,7 +77,7 @@ const FoodLocation = sequelize.define('FoodLocation', {
     allowNull: true 
   },
   type: { 
-    type: DataTypes.ENUM('supermarket', 'food pantry', 'farmers market', 'restaurant', 'bodega', 'community fridge'), 
+    type: DataTypes.STRING, //DataTypes.ENUM('supermarket', 'food pantry', 'farmers market', 'restaurant', 'bodega', 'community fridge', 'soup kitchen'), 
     allowNull: false 
   },
   hours_open: { 
