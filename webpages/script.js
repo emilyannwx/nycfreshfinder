@@ -278,8 +278,109 @@ document.addEventListener('DOMContentLoaded', () => {
     const minPriceInput = document.getElementById('min-price');
     const maxPriceInput = document.getElementById('max-price');
 
-    let foodItems = [];
+    const addItem = document.getElementById('add-item-btn');
+    const addItemPopup = document.querySelector('.add-item');
+    const closePopup = document.querySelector('.close-popup');
+    const addItemForm = document.getElementById('add-item-form');
 
+
+// FOR DEMO PURPOSES
+    let foodItems = [
+        { item: "Apples", price: "$2.99", location: "Whole Foods Market - Gowanus" },
+        { item: "Bread", price: "$3.50", location: "Key Food - Park Slope" }
+    ];
+
+    renderCards(foodItems);
+
+    addItem.addEventListener('click', () => {
+        addItemPopup.classList.add('active');
+    });
+    closePopup.addEventListener('click', () => {
+        addItemPopup.classList.remove('active');
+    });
+    addItemPopup.addEventListener('click', (e) => {
+        if (e.target === addItemPopup) {
+            addItemPopup.classList.remove('active');
+        }
+    });
+
+    addItemForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const newItem = {
+            item: document.getElementById('item-name').value,
+            price: `$${parseFloat(document.getElementById('item-price').value).toFixed(2)}`,
+            location: document.getElementById('item-location').value
+        };
+
+        //add new item to array
+        foodItems.push(newItem);
+        
+        //render cards
+        renderCards(foodItems);
+        
+        //reset form and close popup
+        addItemForm.reset();
+        addItemPopup.classList.remove('active');
+    });
+
+//REAL CODE
+    /*
+    const addItem = document.getElementById('add-item-btn');
+    const addItemPopup = document.querySelector('.add-item');
+    const closePopup = document.querySelector('.close-popup');
+    const addItemForm = document.getElementById('add-item-form');
+
+    //open menu
+    addItem.addEventListener('click', () => {
+        addItemPopup.classList.add('active');
+    });
+
+    //close menu
+    closePopup.addEventListener('click', () => {
+        addItemPopup.classList.remove('active');
+    });
+    addItemPopup.addEventListener('click', (e) => {
+        if (e.target === addItemPopup) {
+            addItemPopup.classList.remove('active');
+        }
+    });
+
+    //handle form submission
+    addItemForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const newItem = {
+            item: document.getElementById('item-name').value,
+            price: `$${parseFloat(document.getElementById('item-price').value).toFixed(2)}`,
+            location: document.getElementById('item-location').value
+        };
+
+        try {
+            const response = await fetch('/api/items', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newItem)
+            });
+
+            if (response.ok) {
+                foodItems.push(newItem);
+                renderCards(foodItems);
+                addItemForm.reset();
+                addItemPopup.classList.remove('active');
+            } else {
+                throw new Error('Failed to add item');
+            }
+        } catch (error) {
+            console.error('Error adding item:', error);
+            alert('Failed to add item. Please try again.');
+        }
+    });
+    */
+
+    /*
     fetch('data/bk_grocer_items_data.json')
         .then(response => response.json())
         .then(data => {
@@ -289,6 +390,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(error => {
             console.error('Error loading data:', error);
         });
+
+    let foodItems = [];
+    */
 
     function renderCards(items) {
         container.innerHTML = ''; //clear existing cards
@@ -329,4 +433,19 @@ document.addEventListener('DOMContentLoaded', () => {
     searchBar.addEventListener('input', filterItems);
     minPriceInput.addEventListener('input', filterItems);
     maxPriceInput.addEventListener('input', filterItems);
+});
+
+
+//bookmark switch
+document.addEventListener('DOMContentLoaded', () => {
+    const bookmarks = document.querySelectorAll('.bookmark');
+
+    bookmarks.forEach(bookmark => {
+        const emptyIcon = bookmark.querySelector('.empty');
+        const filledIcon = bookmark.querySelector('.filled');
+
+        bookmark.addEventListener('click', () => {
+            filledIcon.classList.toggle('active');
+        });
+    });
 });

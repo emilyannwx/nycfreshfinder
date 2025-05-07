@@ -54,11 +54,28 @@
             </label>
         </section>
 
+        <section class="add-item-section">
+            <button id="add-item-btn" class="add-btn">Add New Item</button>
+        </section>
+
         <section class="items" id="items-container"></section>
     </main>
     
     <footer>
         <p>&copy; 2025 NYC Fresh Finder</p>
     </footer>
+
+    <div class="add-item">
+        <div class="popup-content">
+            <span class="close-popup">&times;</span>
+            <form id="add-item-form">
+                <h2>Add New Item</h2>
+                <input type="text" id="item-name" placeholder="Item Name" required>
+                <input type="number" id="item-price" step="0.01" placeholder="Price" required>
+                <input type="text" id="item-location" placeholder="Store Location" required>
+                <button type="submit" class="submit-btn">Add Item</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
