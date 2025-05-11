@@ -107,7 +107,7 @@ const FoodPrice = sequelize.define('FoodPrice', {
     references: { 
       model: FoodLocation, 
       key: 'location_id' 
-    } 
+    }
   },
   item_name: { 
     type: DataTypes.STRING, 
@@ -119,7 +119,7 @@ const FoodPrice = sequelize.define('FoodPrice', {
   },
   unit: { 
     type: DataTypes.ENUM('lb', 'kg', 'each', 'dozen', 'gallon', 'liter'), 
-    allowNull: false 
+    allowNull: true 
   },
   last_updated: { 
     type: DataTypes.DATE, 

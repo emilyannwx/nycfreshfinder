@@ -1,72 +1,68 @@
 
 document.addEventListener("DOMContentLoaded", async function () {
-  try 
-  {
-      console.log("Initializing marker map...");
+  try {
+    console.log("Initializing marker map...");
 
-      //fetch the same JSON data
-      const response = await fetch("data/bk_data.json");
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    const response = await fetch("/api/locations");
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-      const data = await response.json();
-      console.log("JSON Data Loaded:", data);
+    const data = await response.json();
+    console.log("Database Data Loaded:", data);
 
-      //initialize a separate map for markers
-      const markerMap = L.map("marker-map").setView([40.6782, -73.9442], 12); //brooklyn center
+    const markerMap = L.map("marker-map").setView([40.6782, -73.9442], 12); // Brooklyn
 
-      // add base map layer
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: "&copy; OpenStreetMap contributors"
-      }).addTo(markerMap);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(markerMap);
 
-      // Add detailed markers
-      data.forEach(entry => {
-          const {
-              Latitude,
-              Longitude,
-              Name,
-              Type,
-              "Contact Info": ContactInfo,
-              "Street Address": StreetAddress,
-              Borough,
-              "Zip Code": ZipCode,
-              "Days of Operation": DaysOfOperation,
-              "Hours of Operation": HoursOfOperation
-          } = entry;
+    data.forEach(entry => {
+      const {
+        latitude,
+        longitude,
+        name,
+        type,
+        contact_info,
+        address,        // or: street_address
+        borough,
+        zip_code,
+        days_open,      // if these exist in DB
+        hours_open
+      } = entry;
 
-          if (Latitude && Longitude) {
-              const marker = L.marker([parseFloat(Latitude), parseFloat(Longitude)]);
+      if (latitude && longitude) {
+        const marker = L.marker([parseFloat(latitude), parseFloat(longitude)]);
 
-              const popupContent = `
-                  <strong>${Name || "Food Resource"}</strong><br>
-                  <em>Type:</em> ${Type || "N/A"}<br>
-                  <em>Address:</em> ${StreetAddress || "N/A"}, ${Borough || ""}, NY ${ZipCode || ""}<br>
-                  <em>Contact:</em> ${ContactInfo || "N/A"}<br>
-                  <em>Open:</em> ${DaysOfOperation || "N/A"}<br>
-                  <em>Hours:</em> ${HoursOfOperation || "N/A"}
-              `;
+        const popupContent = `
+          <strong>${name || "Food Resource"}</strong><br>
+          <em>Type:</em> ${type || "N/A"}<br>
+          <em>Address:</em> ${address || "N/A"}, ${borough || ""}, NY ${zip_code || ""}<br>
+          <em>Contact:</em> ${contact_info || "N/A"}<br>
+          <em>Open:</em> ${days_open || "N/A"}<br>
+          <em>Hours:</em> ${hours_open || "N/A"}
+        `;
 
-              marker.bindPopup(popupContent);
-              marker.bindTooltip(Name || "Food Resource");
-              marker.addTo(markerMap);
-          }
-      });
+        marker.bindPopup(popupContent);
+        marker.bindTooltip(name || "Food Resource");
+        marker.addTo(markerMap);
+      }
+    });
 
-      console.log("Marker map loaded!");
-  } 
-  catch (error) 
-  {
-      console.error("Error loading marker map:", error);
+    console.log("Marker map loaded!");
+  } catch (error) {
+    console.error("Error loading marker map:", error);
   }
+
+  displaySavedLocations();
 });
+
 
 //leaflet map
 document.addEventListener("DOMContentLoaded", async function () {
   try {
       console.log("Initializing maps...");
 
-      //load JSON data
-      const response = await fetch("data/bk_data.json");
+      //load Database data
+      const response = await fetch("/api/locations");
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
       const data = await response.json();
@@ -74,8 +70,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       //extract latitude and longitude for heatmap
       const heatmapData = data
-          .filter(entry => entry.Latitude && entry.Longitude)
-          .map(entry => [parseFloat(entry.Latitude), parseFloat(entry.Longitude)]);
+        .filter(entry => entry.latitude && entry.longitude)
+        .map(entry => [entry.latitude, entry.longitude]);
+
 
       console.log("Processed Heatmap Data:", heatmapData);
 
@@ -131,14 +128,16 @@ document.addEventListener("DOMContentLoaded", async function () {
       //add markers for each food resource
       data.forEach(entry => {
           if (entry.Latitude && entry.Longitude) {
-              const popupContent = `
-                  <strong>${entry.Name || "Food Resource"}</strong><br>
-                  <em>Type:</em> ${entry.Type || "N/A"}<br>
-                  <em>Contact:</em> ${entry["Contact Info"] || "N/A"}<br>
-                  <em>Address:</em> ${entry["Street Address"] || "N/A"}, ${entry.Borough || "N/A"}, ${entry["Zip Code"] || "N/A"}<br>
-                  <em>Days:</em> ${entry["Days of Operation"] || "N/A"}<br>
-                  <em>Hours:</em> ${entry["Hours of Operation"] || "N/A"}
-              `;
+            const popupContent = `
+              <strong>${entry.name || "Food Resource"}</strong><br>
+              <em>Type:</em> ${entry.type || "N/A"}<br>
+              <em>Address:</em> ${entry.address || "N/A"}, NY ${entry.zip_code || ""}<br>
+              <em>Contact:</em> ${entry.phone_number || "N/A"}<br>
+              <em>Email:</em> ${entry.email || "N/A"}<br>
+              <em>Hours:</em> ${entry.hours_open || "N/A"}<br>
+              <em>Website:</em> <a href="${entry.website_url}" target="_blank">${entry.website_url}</a>
+            `;
+          
 
               L.marker([parseFloat(entry.Latitude), parseFloat(entry.Longitude)])
                   .bindPopup(popupContent)
@@ -195,7 +194,7 @@ document.addEventListener("DOMContentLoaded", async function () {
               }
           }
       }
-  });
+});
 
   //open overlay
   // if (createReviewBtn) {
@@ -293,13 +292,14 @@ function openPopup()
 
 document.addEventListener("DOMContentLoaded", () => {
   // Sign In, Token Retrieval and Redirect
-  console.log(document.getElementById("loginForm"));
 
   document.getElementById("loginForm").addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const username = document.querySelector('input[name="username"]').value;
     const password = document.querySelector('input[name="password"]').value;
+
+    document.querySelector(".alert").style.display = "block";
 
     const response = await fetch("/api/signin", {
         method: "POST",
@@ -317,14 +317,24 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       localStorage.setItem("token", data.token);
 
-      window.location.href = "/"; 
+      // window.location.href = "/"; 
 
       console.log(localStorage.getItem("token"));
+
+      document.querySelector(".alert").classList.remove("fail");
+      document.querySelector(".alert").classList.add("success");
+      document.querySelector(".closebtn").nextSibling.textContent = "Login Successful";
+
     } 
     else 
     {
-      alert(data.message);
+      document.querySelector(".alert").classList.remove("success");
+      document.querySelector(".alert").classList.add("fail");
+      document.querySelector(".closebtn").nextSibling.textContent = "Login failed. Invalid Username or Password";
+
     }
+
+    document.querySelector(".popup").style.display = "none";
   });
 });
 
@@ -373,7 +383,25 @@ async function displaySavedLocations()
   const resultsList = document.getElementById("saved-locations");
   resultsList.innerHTML = '';
 
-  console.log(data);
+  console.log("Saved Locations",data.savedLocation[0].FoodLocation.name);
+
+  data.savedLocation.forEach(location => {
+    const li = document.createElement('li');
+    li.classList.add('location-item'); // optional: for styling or logic
+
+    li.innerHTML = `
+        <h3 class="location-name">${location.FoodLocation.name}</h3>
+        <p class="location-address"><span>Address:</span>${location.FoodLocation.address}</p>
+        <div class="bookmark">
+            <img class="empty" src="/imgs/Bookmark.svg">
+            <img class="filled active" src="/imgs/Bookmark-Filled.svg">
+        </div>
+    `;
+
+    resultsList.appendChild(li);
+  });
+
+
 
 }
 
@@ -427,7 +455,11 @@ function findLocation() {
 
           // Add location name
           li.innerHTML = `<h3 class="location-name">${location.name}</h3>
-          <p><span>Address:</span class="location-address">${location.address}</p>`;
+          <p class="location-address"><span>Address:</span>${location.address}</p>
+          <div class="bookmark">
+            <img class="empty" src="/imgs/Bookmark.svg">
+            <img class="filled" src="/imgs/Bookmark-Filled.svg">
+          </div>`;
         
           // Get corresponding reviews
           const locationReviews = reviewsByLocation[location.location_id] || [];
@@ -468,6 +500,8 @@ function findLocation() {
     {
       console.error("Fetch error:", err);
     }
+
+    bookmarkSwitch();
   });
 }
 
@@ -615,6 +649,42 @@ async function getReviews(Location)
     list.appendChild(reviewDiv);
   });
 
+}
+
+function bookmarkSwitch() {
+  const bookmarks = document.querySelectorAll('.bookmark');
+
+
+  bookmarks.forEach(bookmark => {
+      const emptyIcon = bookmark.querySelector('.empty');
+      const filledIcon = bookmark.querySelector('.filled');
+
+      bookmark.addEventListener('click', async () => {
+        filledIcon.classList.toggle('active');
+
+        const name = bookmark.closest('.location-item').querySelector('.location-name').textContent.trim();
+        const address = bookmark.closest('.location-item').querySelector('.location-address').textContent.replace('Address:', '').trim();
+
+
+        try {
+          
+          const response = await fetch('/api/toggle_location', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem("token")}`
+              },
+              body: JSON.stringify({ name, address })
+          });
+
+          const result = await response.json();
+          console.log(result.message);
+        } catch (err) {
+            console.error('Failed to save location:', err);
+        }
+
+      });
+  });
 }
 
 function redirectSignUp(el) {

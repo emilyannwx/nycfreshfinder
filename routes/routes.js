@@ -75,28 +75,41 @@ router.get('/resources', (req, res) => {
 
 // Get Saved Locations
 router.get("/api/get_saved_locations", authenticateToken, async (req, res) => {
-    try 
-    {
-
-        console.log("Authenticated user ID:", req.user.userId);
+    try {
         const userId = req.user.userId;
 
-
         const savedLocation = await SavedLocation.findAll({
-            where: {
-                user_id: userId
-            }
+            where: { user_id: userId },
+            include: [
+                {
+                    model: FoodLocation,
+                    attributes: ['name', 'address'] // only get needed fields
+                }
+            ]
         });
 
-
-        return res.json({ savedLocation });
+        res.json({ savedLocation });
     } 
     catch (err) 
     {
         console.error("Error retrieving locations:", err);
-        return res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Server error" });
     }
 });
+
+// Show all locations
+router.get('/api/locations', async (req, res) => {
+    try {
+      const locations = await FoodLocation.findAll();
+      res.json(locations);
+    } 
+    catch (err) 
+    {
+      console.error("Error fetching locations:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
 
 // Get Locations on Map Page
 router.get("/api/get_locations/search", async (req, res) => {
@@ -225,8 +238,6 @@ router.post('/api/signin', async (req, res) => {
         // Find user by username
         const user = await User.findOne({ where: { username } });
 
-        console.log("Token payload:", { userId: user.user_id });
-
         if (!user)
         {
             return res.status(400).json({ message: "Invalid credentials" });
@@ -300,53 +311,62 @@ router.post('/api/request_new_password', async (req, res) => {
 
 });
 
-// Save FoodLocation
-router.post("/api/save_location", async (req, res) => {
+// Toggle FoodLocation Save/Unsave
+router.post("/api/toggle_location", async (req, res) => {
     try {
-        // Extract token from Authorization header
+        
         const authHeader = req.headers.authorization;
         if (!authHeader) return res.status(401).json({ message: "Unauthorized: No token provided" });
-    
+
         // verify token
         const token = authHeader.split(" ")[1];
         const decoded = jwt.verify(token, "fake_key");
         const userId = decoded.userId;
-    
+
         // Get name and address from request body
         const { name, address } = req.body;
-    
-        if (!name || !address) {
-        return res.status(400).json({ message: "Location name and address are required" });
+        if (!name || !address) 
+        {
+            return res.status(400).json({ message: "Location name and address are required" });
         }
-    
-        console.log("Saving existing location for user:", userId, "Location Name:", name, "Address:", address);
-    
+
         // Check if the user exists
         const user = await User.findByPk(userId);
-        if (!user) return res.status(404).json({ message: "User not found" });
-    
-        // Find the existing FoodLocation by name and address
-        const foodLocation = await FoodLocation.findOne({ where: { name, address } });
-        if (!foodLocation) return res.status(404).json({ message: "Food location not found" });
-    
-        // Check if the location is already saved by the user
+        if (!user) 
+        {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Find or create the FoodLocation
+        let foodLocation = await FoodLocation.findOne({ where: { name, address } });
+        if (!foodLocation) {
+            foodLocation = await FoodLocation.create({ name, address });
+        }
+
+        // Check if already saved
         const existingSaved = await SavedLocation.findOne({
             where: { user_id: userId, location_id: foodLocation.location_id },
         });
-    
+
         if (existingSaved) {
-            return res.status(400).json({ message: "Location already saved" });
+            // Unsave if already saved
+            await existingSaved.destroy();
+            return res.status(200).json({ message: "Location unsaved" });
+        } 
+        else 
+        {
+            // Save if not saved yet
+            await SavedLocation.create({
+                user_id: userId,
+                location_id: foodLocation.location_id,
+            });
+            return res.status(201).json({ message: "Location saved" });
         }
-    
-        // Save the relationship in SavedLocation
-        await SavedLocation.create({
-            user_id: userId,
-            location_id: foodLocation.location_id,
-        });
-    
-        return res.status(201).json({ message: "Food location saved successfully" });
-    } catch (err) {
-        console.error("Error saving food location:", err);
+
+    }
+    catch (err) 
+    {
+        console.error("Error toggling food location:", err);
         return res.status(500).json({ message: "Server error" });
     }
 });
