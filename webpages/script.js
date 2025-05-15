@@ -283,24 +283,71 @@ document.addEventListener('DOMContentLoaded', () => {
     const closePopup = document.querySelector('.close-popup');
     const addItemForm = document.getElementById('add-item-form');
 
-
-// FOR DEMO PURPOSES
     let foodItems = [
         { item: "Apples", price: "$2.99", location: "Whole Foods Market - Gowanus" },
         { item: "Bread", price: "$3.50", location: "Key Food - Park Slope" }
     ];
 
-    renderCards(foodItems);
+    let editIndex = null;
+
+    function renderCards(items) {
+        container.innerHTML = ''; //clears cards
+        items.forEach((item, index) => {
+            const box = document.createElement('div');
+            box.className = 'box';
+
+            box.innerHTML = `
+                <h2>${item.item}</h2>
+                <ul>
+                    <li>Price: ${item.price}</li>
+                    <li>Location: ${item.location}</li>
+                </ul>
+                <button class="edit-btn" data-index="${index}">Edit</button>
+            `;
+
+            container.appendChild(box);
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const index = e.target.getAttribute('data-index');
+                openEditForm(index);
+            });
+        });
+    }
+
+    function openEditForm(index) {
+        const item = foodItems[index];
+        editIndex = index;
+
+        //change form titles for edit form
+        document.querySelector('.add-item h2').textContent = 'Edit Item';
+        document.getElementById('item-name').value = item.item;
+        document.getElementById('item-price').value = parseFloat(item.price.replace('$', ''));
+        document.getElementById('item-location').value = item.location;
+
+        addItemPopup.classList.add('active');
+    }
 
     addItem.addEventListener('click', () => {
+        //reset form for new item
+        document.querySelector('.add-item h2').textContent = 'Add New Item';
+        addItemForm.reset();
+        editIndex = null;
         addItemPopup.classList.add('active');
     });
+
     closePopup.addEventListener('click', () => {
         addItemPopup.classList.remove('active');
+        addItemForm.reset();
+        editIndex = null;
     });
+
     addItemPopup.addEventListener('click', (e) => {
         if (e.target === addItemPopup) {
             addItemPopup.classList.remove('active');
+            addItemForm.reset();
+            editIndex = null;
         }
     });
 
@@ -313,40 +360,57 @@ document.addEventListener('DOMContentLoaded', () => {
             location: document.getElementById('item-location').value
         };
 
-        //add new item to array
-        foodItems.push(newItem);
-        
-        //render cards
-        renderCards(foodItems);
-        
-        //reset form and close popup
+        if (editIndex !== null) {
+            //update existing item
+            foodItems[editIndex] = newItem;
+        } else {
+            //add new item
+            foodItems.push(newItem);
+        }
+
+        //reset form and change ui
         addItemForm.reset();
         addItemPopup.classList.remove('active');
+        renderCards(foodItems);
+        editIndex = null;
     });
 
-//REAL CODE
+    renderCards(foodItems);
+
+    //POTENTIAL DATABASE CODE (not updated to include edit feature)
     /*
     const addItem = document.getElementById('add-item-btn');
     const addItemPopup = document.querySelector('.add-item');
     const closePopup = document.querySelector('.close-popup');
     const addItemForm = document.getElementById('add-item-form');
 
-    //open menu
+    let foodItems = [];
+    let editIndex = null; // Track the index of the item being edited
+
+    // Open menu for adding a new item
     addItem.addEventListener('click', () => {
+        document.querySelector('.add-item h2').textContent = 'Add New Item';
+        addItemForm.reset();
+        editIndex = null; // Clear edit index
         addItemPopup.classList.add('active');
     });
 
-    //close menu
+    // Close menu
     closePopup.addEventListener('click', () => {
         addItemPopup.classList.remove('active');
+        addItemForm.reset();
+        editIndex = null; // Clear edit index
     });
+
     addItemPopup.addEventListener('click', (e) => {
         if (e.target === addItemPopup) {
             addItemPopup.classList.remove('active');
+            addItemForm.reset();
+            editIndex = null; // Clear edit index
         }
     });
 
-    //handle form submission
+    // Handle form submission
     addItemForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -357,30 +421,51 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch('/api/items', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newItem)
-            });
+            if (editIndex !== null) {
+                // Update existing item
+                const response = await fetch(`/api/items/${editIndex}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newItem)
+                });
 
-            if (response.ok) {
-                foodItems.push(newItem);
-                renderCards(foodItems);
-                addItemForm.reset();
-                addItemPopup.classList.remove('active');
+                if (response.ok) {
+                    foodItems[editIndex] = newItem;
+                    renderCards(foodItems);
+                    addItemForm.reset();
+                    addItemPopup.classList.remove('active');
+                    editIndex = null; // Clear edit index
+                } else {
+                    throw new Error('Failed to update item');
+                }
             } else {
-                throw new Error('Failed to add item');
+                // Add new item
+                const response = await fetch('/api/items', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newItem)
+                });
+
+                if (response.ok) {
+                    foodItems.push(newItem);
+                    renderCards(foodItems);
+                    addItemForm.reset();
+                    addItemPopup.classList.remove('active');
+                } else {
+                    throw new Error('Failed to add item');
+                }
             }
         } catch (error) {
-            console.error('Error adding item:', error);
-            alert('Failed to add item. Please try again.');
+            console.error('Error handling item:', error);
+            alert('Failed to process item. Please try again.');
         }
     });
-    */
 
-    /*
+    // Fetch initial data from JSON
     fetch('data/bk_grocer_items_data.json')
         .then(response => response.json())
         .then(data => {
@@ -391,12 +476,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error loading data:', error);
         });
 
-    let foodItems = [];
-    */
-
+    // Render cards
     function renderCards(items) {
-        container.innerHTML = ''; //clear existing cards
-        items.forEach(item => {
+        const container = document.getElementById('items-container');
+        container.innerHTML = ''; // Clear existing cards
+        items.forEach((item, index) => {
             const box = document.createElement('div');
             box.className = 'box';
 
@@ -406,33 +490,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     <li>Price: ${item.price}</li>
                     <li>Location: ${item.location}</li>
                 </ul>
-                <button>Edit</button>
+                <button class="edit-btn" data-index="${index}">Edit</button>
             `;
 
             container.appendChild(box);
         });
-    }
 
-    function filterItems() {
-        const query = searchBar.value.toLowerCase();
-        const min = parseFloat(minPriceInput.value) || 0;
-        const max = parseFloat(maxPriceInput.value) || Infinity;
-    
-        const filtered = foodItems.filter(item => {
-            const titleMatch = item.item.toLowerCase().includes(query);
-            const priceValue = parseFloat(item.price.replace(/[^0-9.]/g, ''));
-            const priceMatch = priceValue >= min && priceValue <= max;
-    
-            return titleMatch && priceMatch;
+        // Add event listeners to edit buttons
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const index = e.target.getAttribute('data-index');
+                openEditForm(index);
+            });
         });
-    
-        renderCards(filtered);
     }
 
-    //add listeners
-    searchBar.addEventListener('input', filterItems);
-    minPriceInput.addEventListener('input', filterItems);
-    maxPriceInput.addEventListener('input', filterItems);
+    // Open edit form
+    function openEditForm(index) {
+        const item = foodItems[index];
+        editIndex = index; // Set the index of the item being edited
+
+        // Update form title and pre-fill form fields
+        document.querySelector('.add-item h2').textContent = 'Edit Item';
+        document.getElementById('item-name').value = item.item;
+        document.getElementById('item-price').value = parseFloat(item.price.replace('$', ''));
+        document.getElementById('item-location').value = item.location;
+
+        // Show the popup
+        addItemPopup.classList.add('active');
+    }
+        */
 });
 
 
