@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log("Initializing maps...");
 
         //load JSON data
-        const response = await fetch("data/bk_data.json");
+        const response = await fetch("data/nyc_data.json");
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
         const data = await response.json();
@@ -79,39 +79,90 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         //heatmap
         //maybe add a legend?
+
         const heatmapContainer = document.getElementById("heatmap");
-        if (heatmapContainer) {
-            const heatmap = L.map("heatmap").setView([40.6782, -73.9442], 12);
+if (heatmapContainer) {
+    const heatmap = L.map("heatmap").setView([40.6782, -73.9442], 12);
 
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "&copy; OpenStreetMap contributors"
-            }).addTo(heatmap);
-            //
-            L.heatLayer(heatmapData, {
-                radius: 35,
-                blur: 20,
-                maxZoom: 15,
-                gradient: { 
-                0.1: "blue", 
-                0.3: "cyan",
-                0.5: "lime", 
-                0.7: "yellow",
-                1.0: "red" }
-            }).addTo(heatmap);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(heatmap);
 
-            console.log("Heatmap loaded successfully!");
-            const legend = L.control({ position: "bottomright" });
-
-            legend.onAdd = function(map) {
-                const div = L.DomUtil.create("div", "legend");
-                div.innerHTML += "<h4><strong>Intensity</strong></h4>";
-                div.innerHTML += '<div class="gradient-bar"></div>';
-                div.innerHTML += '<div class="labels"><span class="low-label">Low</span><span class="high-label">High</span></div>';
-                return div;
-            };
-
-            legend.addTo(heatmap);
+    // 🔥 Add your heatmap
+    L.heatLayer(heatmapData, {
+        radius: 35,
+        blur: 20,
+        maxZoom: 15,
+        gradient: {
+            0.1: "blue",
+            0.3: "cyan",
+            0.5: "lime",
+            0.7: "yellow",
+            1.0: "red"
         }
+    }).addTo(heatmap);
+
+
+    //zoom-based circular population markers
+    const labelMarkers = [];
+
+    fetch("data/nyc_nta_pop.geojson")
+        .then(res => res.json())
+        .then(data => {
+            const sortedFeatures = data.features
+                .filter(f => f.properties.population)
+                .sort((a, b) => b.properties.population - a.properties.population);
+
+            sortedFeatures.forEach((feature, i) => {
+                const name = feature.properties.name;
+
+            const pop = feature.properties.population || 0;
+
+            const centerCoords = turf.centerOfMass(feature).geometry.coordinates;
+            const center = [centerCoords[1], centerCoords[0]];
+
+                //tier zoom level
+                let minZoom;
+                if (i < 5) minZoom = 10;
+                else if (i < 10) minZoom = 11;
+                else if (i < 20) minZoom = 12;
+                else if (i < 40) minZoom = 13;
+                else minZoom = 14;
+
+                const marker = L.marker(center, {
+                    icon: L.divIcon({
+                        className: "population-label",
+                        html: `<div class="bubble-text">
+                                 <strong>${name}</strong><br>
+                                 Population: ${pop.toLocaleString()}
+                               </div>`
+                    })
+                });
+
+                labelMarkers.push({ marker, minZoom });
+
+                //add immediately if zoom level allows
+                if (heatmap.getZoom() >= minZoom) {
+                    marker.addTo(heatmap);
+                }
+            });
+
+            //zoom listener: show/hide markers by tier
+            function updateVisibleMarkers() {
+                const zoom = heatmap.getZoom();
+                labelMarkers.forEach(({ marker, minZoom }) => {
+                    if (zoom >= minZoom) {
+                        if (!heatmap.hasLayer(marker)) marker.addTo(heatmap);
+                    } else {
+                        if (heatmap.hasLayer(marker)) heatmap.removeLayer(marker);
+                    }
+                });
+            }
+
+            updateVisibleMarkers(); // initial
+            heatmap.on("zoomend", updateVisibleMarkers);
+        });
+}
 
         //marker map
         const markerMapContainer = document.getElementById("marker-map");
