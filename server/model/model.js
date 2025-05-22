@@ -24,13 +24,11 @@ const User = sequelize.define('User', {
   },
   username: { 
     type: DataTypes.STRING, 
-    allowNull: false 
+    allowNull: false,
   },
   email: { 
     type: DataTypes.STRING, 
-    allowNull: false, 
-    unique: true, 
-    validate: { isEmail: true } 
+    allowNull: false,
   },
   password: { 
     type: DataTypes.STRING, 
@@ -39,6 +37,14 @@ const User = sequelize.define('User', {
   zip_code: { 
     type: DataTypes.STRING, 
     allowNull: false 
+  },
+  reset_token: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  reset_token_expiry: {
+    type: DataTypes.BIGINT, // or DataTypes.DATE if you prefer
+    allowNull: true
   },
   role: { 
     type: DataTypes.ENUM('user', 'admin'), 
@@ -103,11 +109,12 @@ const FoodPrice = sequelize.define('FoodPrice', {
     autoIncrement: true 
   },
   location_id: { 
-    type: DataTypes.INTEGER, 
-    references: { 
-      model: FoodLocation, 
-      key: 'location_id' 
-    }
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  location_name: {
+    type: DataTypes.STRING, 
+    allowNull: false
   },
   item_name: { 
     type: DataTypes.STRING, 
@@ -121,10 +128,7 @@ const FoodPrice = sequelize.define('FoodPrice', {
     type: DataTypes.ENUM('lb', 'kg', 'each', 'dozen', 'gallon', 'liter'), 
     allowNull: true 
   },
-  last_updated: { 
-    type: DataTypes.DATE, 
-    defaultValue: Sequelize.NOW 
-  },
+
 }, { timestamps: false });
 
 // Define Food_Deserts Model

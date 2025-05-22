@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", async function () {
   try {
     console.log("Initializing marker map...");
@@ -58,143 +57,256 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 //leaflet map
 document.addEventListener("DOMContentLoaded", async function () {
-  try {
-      console.log("Initializing maps...");
+    try {
+        console.log("Initializing maps...");
 
-      //load Database data
-      const response = await fetch("/api/locations");
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        //load JSON data
+        const response = await fetch("/data/nyc_data.json");
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-      const data = await response.json();
-      console.log("JSON Data Loaded:", data);
+        const data = await response.json();
+        console.log("JSON Data Loaded:", data);
 
-      //extract latitude and longitude for heatmap
-      const heatmapData = data
-        .filter(entry => entry.latitude && entry.longitude)
-        .map(entry => [entry.latitude, entry.longitude]);
+        //extract latitude and longitude for heatmap
+        const heatmapData = data
+            .filter(entry => entry.Latitude && entry.Longitude)
+            .map(entry => [parseFloat(entry.Latitude), parseFloat(entry.Longitude)]);
+
+        console.log("Processed Heatmap Data:", heatmapData);
+
+        if (heatmapData.length === 0) {
+            throw new Error("No valid latitude/longitude points found in JSON!");
+        }
+
+        //heatmap
+        //maybe add a legend?
+
+        const heatmapContainer = document.getElementById("heatmap");
+    if (heatmapContainer) {
+        const heatmap = L.map("heatmap").setView([40.6782, -73.9442], 12);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(heatmap);
+
+        // 🔥 Add your heatmap
+        L.heatLayer(heatmapData, {
+            radius: 35,
+            blur: 20,
+            maxZoom: 15,
+            gradient: {
+                0.1: "blue",
+                0.3: "cyan",
+                0.5: "lime",
+                0.7: "yellow",
+                1.0: "red"
+            }
+        }).addTo(heatmap);
 
 
-      console.log("Processed Heatmap Data:", heatmapData);
+        //zoom-based circular population markers
+        const labelMarkers = [];
 
-      if (heatmapData.length === 0) {
-          throw new Error("No valid latitude/longitude points found in JSON!");
-      }
+        
+        fetch("data/nyc_nta_pop.geojson")
+          .then(res => {
+            if (!res.ok) {
+              throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+            return res.json();
+          })
+          .then(data => {
+            const sortedFeatures = data.features
+              .filter(f => f.properties.population)
+              .sort((a, b) => b.properties.population - a.properties.population);
+              
+            sortedFeatures.forEach((feature, i) => {
+              const name = feature.properties.name;
+              const pop = feature.properties.population || 0;
+              const centerCoords = turf.centerOfMass(feature).geometry.coordinates;
+              const center = [centerCoords[1], centerCoords[0]];
 
-      //heatmap
-      //maybe add a legend?
-      const heatmapContainer = document.getElementById("heatmap");
-      if (heatmapContainer) {
-          const heatmap = L.map("heatmap").setView([40.6782, -73.9442], 12);
+              
 
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-              attribution: "&copy; OpenStreetMap contributors"
-          }).addTo(heatmap);
-          //
-          L.heatLayer(heatmapData, {
-              radius: 35,
-              blur: 20,
-              maxZoom: 15,
-              gradient: { 
-              0.1: "blue", 
-              0.3: "cyan",
-              0.5: "lime", 
-              0.7: "yellow",
-              1.0: "red" }
-          }).addTo(heatmap);
+              let minZoom;
+              if (i < 5) minZoom = 10;
+              else if (i < 10) minZoom = 11;
+              else if (i < 20) minZoom = 12;
+              else if (i < 40) minZoom = 13;
+              else minZoom = 14;
 
-          console.log("Heatmap loaded successfully!");
-          const legend = L.control({ position: "bottomright" });
+              
 
-          legend.onAdd = function(map) {
-              const div = L.DomUtil.create("div", "legend");
-              div.innerHTML += "<h4><strong>Intensity</strong></h4>";
-              div.innerHTML += '<div class="gradient-bar"></div>';
-              div.innerHTML += '<div class="labels"><span class="low-label">Low</span><span class="high-label">High</span></div>';
-              return div;
-          };
+              const marker = L.marker(center, {
+                icon: L.divIcon({
+                  className: "population-label",
+                  html: `<div class="bubble-text">
+                          <strong>${name}</strong><br>
+                          Population: ${pop.toLocaleString()}
+                        </div>`
+                })
+              });
 
-          legend.addTo(heatmap);
-      }
+              
 
-      //marker map
-      const markerMapContainer = document.getElementById("marker-map");
-  if (markerMapContainer) {
-      const markerMap = L.map("marker-map").setView([40.6782, -73.9442], 12);
+              labelMarkers.push({ marker, minZoom });
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: "&copy; OpenStreetMap contributors"
-      }).addTo(markerMap);
+              if (heatmap.getZoom() >= minZoom) {
+                marker.addTo(heatmap);
+              }
+            });
 
-      //add markers for each food resource
-      data.forEach(entry => {
-          if (entry.Latitude && entry.Longitude) {
-            const popupContent = `
-              <strong>${entry.name || "Food Resource"}</strong><br>
-              <em>Type:</em> ${entry.type || "N/A"}<br>
-              <em>Address:</em> ${entry.address || "N/A"}, NY ${entry.zip_code || ""}<br>
-              <em>Contact:</em> ${entry.phone_number || "N/A"}<br>
-              <em>Email:</em> ${entry.email || "N/A"}<br>
-              <em>Hours:</em> ${entry.hours_open || "N/A"}<br>
-              <em>Website:</em> <a href="${entry.website_url}" target="_blank">${entry.website_url}</a>
-            `;
-          
+            function updateVisibleMarkers() {
+              const zoom = heatmap.getZoom();
+              labelMarkers.forEach(({ marker, minZoom }) => {
+                if (zoom >= minZoom) {
+                  if (!heatmap.hasLayer(marker)) marker.addTo(heatmap);
+                } else {
+                  if (heatmap.hasLayer(marker)) heatmap.removeLayer(marker);
+                }
+              });
+            }
 
-              L.marker([parseFloat(entry.Latitude), parseFloat(entry.Longitude)])
-                  .bindPopup(popupContent)
-                  .addTo(markerMap);
-          }
-      });
+            updateVisibleMarkers();
+            heatmap.on("zoomend", updateVisibleMarkers);
+          })
+          .catch(err => {
+            console.error("Failed to load GeoJSON or render markers:", err);
+            alert("Failed to load population data for the map.");
+          });
 
-      console.log("Marker map loaded successfully!");
-      }
+
+    }
+
   } catch (error) {
       console.error("Error loading the marker map:", error);
   }
 
 
-  //review system
-  let reviewStore = {};
-  let currentLocation = null;
-  let currentRatings = { price: 0, quality: 0 };
+    //review system
+    let reviewStore = {};
+    let currentLocation = null;
+    let currentRatings = { price: 0, quality: 0 };
 
-  const createReviewBtn = document.getElementById('create-review-btn');
-  const reviewFormContainer = document.querySelector('.review-form-container');
-  const closeFormBtn = document.querySelector('.close-form');
-  const submitReviewBtn = document.getElementById('submit-review');
-  const reviewsList = document.querySelector('.reviews-list');
-  const selectedLocation = document.getElementById('selected-location');
+    const createReviewBtn = document.getElementById('create-review-btn');
+    const reviewFormContainer = document.querySelector('.review-form-container');
+    const closeFormBtn = document.querySelector('.close-form');
+    const submitReviewBtn = document.getElementById('submit-review');
+    const reviewsList = document.querySelector('.reviews-list');
+    const selectedLocation = document.getElementById('selected-location');
 
-  //stars
-  function initStars() {
-      document.querySelectorAll('.star').forEach(star => {
-          star.addEventListener('click', function () {
-              const category = this.parentElement.dataset.category;
-              const value = parseInt(this.dataset.value);
-              currentRatings[category] = value;
+    //stars
+    function initStars() {
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', function () {
+                const category = this.parentElement.dataset.category;
+                const value = parseInt(this.dataset.value);
+                currentRatings[category] = value;
 
-              this.parentElement.querySelectorAll('.star').forEach((s, i) => {
-                  s.classList.toggle('active', i < value);
-              });
-          });
-      });
+                this.parentElement.querySelectorAll('.star').forEach((s, i) => {
+                    s.classList.toggle('active', i < value);
+                });
+            });
+        });
+    }
+    initStars();
+
+    //get location info
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('leaflet-marker-icon')) {
+            const popup = document.querySelector('.leaflet-popup-content');
+            if (popup) {
+                const nameMatch = popup.innerHTML.match(/<strong>(.*?)<\/strong>/);
+                if (nameMatch) {
+                    const locationName = nameMatch[1].trim();
+                    currentLocation = { Name: locationName };
+                    selectedLocation.textContent = locationName;
+                    displayReviewsForLocation(locationName);
+                }
+            }
+        }
+    });
+
+    //open overlay
+    if (createReviewBtn) {
+        createReviewBtn.addEventListener('click', function () {
+            if (!currentLocation) {
+                alert('Please select a location first by clicking on a map marker.');
+                return;
+            }
+            reviewFormContainer.classList.add('active');
+        });
+    }
+
+    //close overlay
+    if (closeFormBtn) {
+        closeFormBtn.addEventListener('click', function () {
+            reviewFormContainer.classList.remove('active');
+        });
+    }
+
+    //submit
+    if (submitReviewBtn) {
+        submitReviewBtn.addEventListener('click', function () {
+            const name = document.getElementById('reviewer-name')?.value.trim() || 'Anonymous';
+            const comment = document.getElementById('review-comment')?.value.trim() || 'No comment provided.';
+
+            if (currentRatings.price === 0 || currentRatings.quality === 0) {
+                alert('Please rate both price and quality.');
+                return;
+            }
+
+            const review = {
+                locationName: currentLocation.Name,
+                name,
+                comment,
+                ratings: { ...currentRatings },
+                date: new Date().toLocaleDateString()
+            };
+
+            if (!reviewStore[review.locationName]) reviewStore[review.locationName] = [];
+            reviewStore[review.locationName].push(review);
+            displayReviewsForLocation(review.locationName);
+
+            // Reset form
+            document.getElementById('reviewer-name').value = '';
+            document.getElementById('review-comment').value = '';
+            document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+            currentRatings = { price: 0, quality: 0 };
+            reviewFormContainer.classList.remove('active');
+        });
+    }
+
+  //display reviews
+  function displayReviewsForLocation(locationName) 
+  {
+    reviewsList.innerHTML = '';
+    const reviews = reviewStore[locationName] || [];
+
+    if (reviews.length === 0) 
+    {
+      reviewsList.innerHTML = '<p>No reviews yet. Be the first to review!</p>';
+      return;
+    }
+
+    reviews.forEach(review => {
+      const div = document.createElement('div');
+      div.className = 'review-item';
+      div.innerHTML = `
+          <div class="review-header">
+              <span class="review-author">${review.name}</span>
+              <span class="review-date">${review.date}</span>
+          </div>
+          <div class="review-ratings">
+              <div class="review-rating"><span>Price:</span><span>${'★'.repeat(review.ratings.price)}</span></div>
+              <div class="review-rating"><span>Quality:</span><span>${'★'.repeat(review.ratings.quality)}</span></div>
+          </div>
+          <div class="review-content">${review.comment}</div>
+      `;
+      reviewsList.appendChild(div);
+    });
   }
-  initStars();
 
-  //get location info
-  document.addEventListener('click', function (e) {
-      if (e.target.classList.contains('leaflet-marker-icon')) {
-          const popup = document.querySelector('.leaflet-popup-content');
-          if (popup) {
-              const nameMatch = popup.innerHTML.match(/<strong>(.*?)<\/strong>/);
-              if (nameMatch) {
-                  const locationName = nameMatch[1].trim();
-                  currentLocation = { Name: locationName };
-                  selectedLocation.textContent = locationName;
-                  displayReviewsForLocation(locationName);
-              }
-          }
-      }
-});
 
   //open overlay
   // if (createReviewBtn) {
@@ -336,6 +448,62 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelector(".popup").style.display = "none";
   });
+
+  // document.getElementById("signupForm").addEventListener("submit", async (event) => {
+
+
+  //   event.preventDefault();
+
+
+  //   if (isSubmitting) return event.preventDefault(); // prevent double submit
+  //   isSubmitting = true;
+
+
+  //   const email = document.querySelector('input[name="email"]').value;
+  //   const username = document.querySelector('input[name="username_s"]').value;
+  //   const password = document.querySelector('input[name="password_s"]').value;
+  //   const zip_code = document.querySelector('input[name="zip_code"]').value;
+
+  //   document.querySelector(".alert").style.display = "block";
+
+  //   const response = await fetch("/api/new_user", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ email, username, password, zip_code }),
+  //   });
+    
+  //   const data = await response.json();
+
+  //   if (response.ok) 
+  //   {
+  //     if (localStorage.getItem("token"))
+  //     {
+  //       localStorage.removeItem("token");
+  //     }
+  //     localStorage.setItem("token", data.token);
+
+  //     // window.location.href = "/"; 
+
+  //     console.log(localStorage.getItem("token"));
+
+  //     document.querySelector(".alert").classList.remove("fail");
+  //     document.querySelector(".alert").classList.add("success");
+  //     document.querySelector(".closebtn").nextSibling.textContent = "User created successfully";
+
+  //   } 
+  //   else 
+  //   {
+
+  //     console.log(data.error);
+  //     document.querySelector(".alert").classList.remove("success");
+  //     document.querySelector(".alert").classList.add("fail");
+  //     document.querySelector(".closebtn").nextSibling.textContent = data.error;
+
+  //   }
+
+  //   document.querySelector(".popup").style.display = "none";
+  //   isSubmitting = false;
+  // });
 });
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -400,6 +568,7 @@ async function displaySavedLocations()
 
     resultsList.appendChild(li);
   });
+  bookmarkSwitch();
 
 
 
@@ -410,19 +579,23 @@ function findLocation() {
   const form = document.getElementById("find-location");
 
   form.addEventListener("submit", async (event) => {
-
     console.log("Search In Progress");
-    event.preventDefault(); // stop reload
+    event.preventDefault();
 
     const searchInput = form.querySelector('.search-input');
     const search = encodeURIComponent(searchInput.value.trim());
-
     if (!search) return;
 
-    try 
-    {
-      const response = await fetch(`/api/get_locations/search?search=${search}`);
+    try {
+      const response = await fetch(`/api/get_locations/search?search=${search}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("token")}`
+        }
+      });
+
       const data = await response.json();
+
+      console.log(data);
 
       const locationContainer = document.getElementById("location-area");
       locationContainer.innerText = searchInput.value;
@@ -435,75 +608,68 @@ function findLocation() {
 
       const reviewsByLocation = {};
       reviews.forEach(review => {
-        if (!reviewsByLocation[review.location_id]) 
-        {
+        if (!reviewsByLocation[review.location_id]) {
           reviewsByLocation[review.location_id] = [];
         }
         reviewsByLocation[review.location_id].push(review);
       });
 
-      if (Array.isArray(locations) && locations.length) 
-      {
+      if (Array.isArray(locations) && locations.length) {
         locations.forEach(location => {
           const li = document.createElement('div');
           li.classList.add("location-item");
-          li.onclick = function() {
-            selectedLocation(location.name)
-            getReviews()
-          };
-          
 
-          // Add location name
-          li.innerHTML = `<h3 class="location-name">${location.name}</h3>
-          <p class="location-address"><span>Address:</span>${location.address}</p>
-          <div class="bookmark">
-            <img class="empty" src="/imgs/Bookmark.svg">
-            <img class="filled" src="/imgs/Bookmark-Filled.svg">
-          </div>`;
-        
-          // Get corresponding reviews
+          // Handle click for selection + review
+          li.onclick = function () {
+            selectedLocation(location.name);
+            getReviews();
+          };
+
+          // Create bookmark markup with 'active' class if already saved
+          const filledClass = location.saved ? "filled active" : "filled";
+
+          li.innerHTML = `
+            <h3 class="location-name">${location.name}</h3>
+            <p class="location-address"><span>Address:</span>${location.address}</p>
+            <div class="bookmark">
+              <img class="empty" src="/imgs/Bookmark.svg">
+              <img class="${filledClass}" src="/imgs/Bookmark-Filled.svg">
+            </div>
+          `;
+
+          // Rating section
           const locationReviews = reviewsByLocation[location.location_id] || [];
-        
-          if (locationReviews.length) 
-          {
-            const ul = document.createElement('p');
-            ul.innerHTML = "<span>Rating:</span>";
-            let stars = "";
+          const ratingP = document.createElement('p');
+
+          if (locationReviews.length) {
             let totalRating = 0;
             locationReviews.forEach(review => {
               totalRating += review.price_rating + review.quality_rating;
             });
 
-            totalRating = totalRating / (locationReviews.length * 10);
-
-            stars = " ★".repeat(Math.round(totalRating * 5));
-
-            ul.innerHTML += stars;
-            li.appendChild(ul);
-          } 
-          else 
-          {
-            const ul = document.createElement('p');
-            ul.innerHTML = "<p><span>Rating:</span>N/A</p>";
-            li.appendChild(ul);
+            const avgRating = totalRating / (locationReviews.length * 10);
+            const stars = "★".repeat(Math.round(avgRating * 5));
+            ratingP.innerHTML = `<span>Rating:</span> ${stars}`;
+          } else {
+            ratingP.innerHTML = `<span>Rating:</span> N/A`;
           }
-        
+
+          li.appendChild(ratingP);
           resultsList.appendChild(li);
         });
-      } 
-      else 
-      {
+      } else {
         resultsList.innerHTML = '<h3>No Results Found</h3>';
       }
-    } 
-    catch (err) 
-    {
+
+      // After new DOM is rendered
+      bookmarkSwitch();
+
+    } catch (err) {
       console.error("Fetch error:", err);
     }
-
-    bookmarkSwitch();
   });
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('items-container');
@@ -511,9 +677,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const minPriceInput = document.getElementById('min-price');
   const maxPriceInput = document.getElementById('max-price');
 
+  const addItem = document.getElementById('add-item-btn');
+  const addItemPopup = document.querySelector('.add-item');
+  const closePopup = document.querySelector('.close-popup');
+  const addItemForm = document.getElementById('add-item-form');
+
   let foodItems = [];
 
-  fetch('data/bk_grocer_items_data.json')
+  fetch('/api/get_fooditems')
       .then(response => response.json())
       .then(data => {
           foodItems = data;
@@ -535,12 +706,34 @@ document.addEventListener('DOMContentLoaded', () => {
                   <li>Price: ${item.price}</li>
                   <li>Location: ${item.location}</li>
               </ul>
-              <button>Edit</button>
           `;
+            // <button>Edit</button>
 
           container.appendChild(box);
       });
   }
+
+  addItem.addEventListener('click', () => {
+        //reset form for new item
+        document.querySelector('.add-item h2').textContent = 'Add New Item';
+        addItemForm.reset();
+        editIndex = null;
+        addItemPopup.classList.add('active');
+    });
+
+    closePopup.addEventListener('click', () => {
+        addItemPopup.classList.remove('active');
+        addItemForm.reset();
+        editIndex = null;
+    });
+
+    addItemPopup.addEventListener('click', (e) => {
+        if (e.target === addItemPopup) {
+            addItemPopup.classList.remove('active');
+            addItemForm.reset();
+            editIndex = null;
+        }
+  });
 
   function filterItems() {
       const query = searchBar.value.toLowerCase();
@@ -554,6 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
           return titleMatch && priceMatch;
       });
+      
   
       renderCards(filtered);
   }
@@ -562,6 +756,57 @@ document.addEventListener('DOMContentLoaded', () => {
   searchBar.addEventListener('input', filterItems);
   minPriceInput.addEventListener('input', filterItems);
   maxPriceInput.addEventListener('input', filterItems);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('items-container');
+    const searchBar = document.getElementById('search-bar');
+    const minPriceInput = document.getElementById('min-price');
+    const maxPriceInput = document.getElementById('max-price');
+
+    const addItem = document.getElementById('add-item-btn');
+    const addItemPopup = document.querySelector('.add-item');
+    const closePopup = document.querySelector('.close-popup');
+    const addItemForm = document.getElementById('add-item-form');
+
+    let foodItems = [
+        { item: "Apples", price: "$2.99", location: "Whole Foods Market - Gowanus" },
+        { item: "Bread", price: "$3.50", location: "Key Food - Park Slope" }
+    ];
+
+    let editIndex = null;
+
+    function renderCards(items) {
+        container.innerHTML = ''; //clears cards
+        items.forEach((item, index) => {
+            const box = document.createElement('div');
+            box.className = 'box';
+
+            box.innerHTML = `
+                <h2>${item.item}</h2>
+                <ul>
+                    <li>Price: ${item.price}</li>
+                    <li>Location: ${item.location}</li>
+                </ul>
+                <button class="edit-btn" data-index="${index}">Edit</button>
+            `;
+
+            container.appendChild(box);
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const index = e.target.getAttribute('data-index');
+                openEditForm(index);
+            });
+        });
+    }
+
+    
+
+
+
+    renderCards(foodItems);
 });
 
 
@@ -589,10 +834,14 @@ async function saveReview() {
   const reviewDiv = document.createElement("div");
 
   reviewDiv.innerHTML = `
-    <p><h3>${data.user.username}</h3></p>
-    <p><strong>Price Rating:</strong> ${" ★".repeat(Math.round(price_rating))}</p>
-    <p><strong>Quality Rating:</strong> ${" ★".repeat(Math.round(quality_rating))}</p>
-    <p><strong>Comment:</strong> ${review}</p>
+    <div class="review-header">
+        <span class="review-author">${data.user.username}</span>
+    </div>
+    <div class="review-ratings">
+        <div class="review-rating"><span>Price:</span><span>${'★'.repeat(Math.round(price_rating))}</span></div>
+        <div class="review-rating"><span>Quality:</span><span>${'★'.repeat(Math.round(quality_rating))}</span></div>
+    </div>
+    <div class="review-content">${review}</div>
   `;
 
   list.appendChild(reviewDiv);
@@ -640,10 +889,14 @@ async function getReviews(Location)
     reviewDiv.classList.add("review-item"); // optional for styling
 
     reviewDiv.innerHTML = `
-      <p><h3>${user}</h3></p>
-      <p><strong>Price Rating:</strong> ${" ★".repeat(Math.round(review.price_rating))}</p>
-      <p><strong>Quality Rating:</strong> ${" ★".repeat(Math.round(review.quality_rating))}</p>
-      <p><strong>Comment:</strong> ${review.comment}</p>
+      <div class="review-header">
+        <span class="review-author">${user}</span>
+      </div>
+      <div class="review-ratings">
+          <div class="review-rating"><span>Price:</span><span>${'★'.repeat(Math.round(review.price_rating))}</span></div>
+          <div class="review-rating"><span>Quality:</span><span>${'★'.repeat(Math.round(review.quality_rating))}</span></div>
+      </div>
+      <div class="review-content">${review.comment}</div>
     `;
 
     list.appendChild(reviewDiv);
@@ -656,6 +909,7 @@ function bookmarkSwitch() {
 
 
   bookmarks.forEach(bookmark => {
+    console.log("Bookmark button");
       const emptyIcon = bookmark.querySelector('.empty');
       const filledIcon = bookmark.querySelector('.filled');
 

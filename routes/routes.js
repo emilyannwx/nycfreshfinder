@@ -8,6 +8,7 @@ const bcrypt = require("bcryptjs");
 const authenticateToken = require('../routes/authenticateToken');
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const { Op } = require("sequelize");
 
 
 // Import Database Entities
@@ -73,6 +74,27 @@ router.get('/resources', (req, res) => {
     res.render('resources');
 });
 
+// Reset Password Page
+router.get('/reset-password', async (req, res) => {
+  const token = req.query.token;
+    if (!token) return res.status(400).send("Token missing");
+
+    // Look up user by token and check expiration
+    const user = await User.findOne({
+    where: {
+        reset_token: token,
+        reset_token_expiry: { [Op.gt]: Date.now() } // Sequelize operator: token must not be expired
+    }
+    });
+
+    if (!user) return res.status(400).send("Invalid or expired token");
+
+    // Token is valid, render reset form
+    return res.render("reset_password", { token });
+
+});
+
+
 // Get Saved Locations
 router.get("/api/get_saved_locations", authenticateToken, async (req, res) => {
     try {
@@ -112,18 +134,30 @@ router.get('/api/locations', async (req, res) => {
   
 
 // Get Locations on Map Page
-router.get("/api/get_locations/search", async (req, res) => {
-    try 
-    {
-        console.log(req.query.search);
+router.get("/api/get_locations/search", authenticateToken, async (req, res) => {
+    try {
         const zip_code = req.query.search;
+        const userId = req.user.userId;
 
+        // 1. Get all locations with that zip code
         const locations = await FoodLocation.findAll({
-            where: {
-                zip_code: zip_code
-            }
+            where: { zip_code }
         });
 
+        // 2. Get all saved locations by the user
+        const savedLocations = await SavedLocation.findAll({
+            where: { user_id: userId }
+        });
+
+        const savedLocationIds = new Set(savedLocations.map(sl => sl.location_id));
+
+        // 3. Add a `saved` field to each location
+        const locationsWithSaved = locations.map(loc => ({
+            ...loc.toJSON(),
+            saved: savedLocationIds.has(loc.location_id)
+        }));
+
+        // 4. Get all reviews for these locations
         const locationIds = locations.map(loc => loc.location_id);
 
         const reviews = await Review.findAll({
@@ -132,10 +166,8 @@ router.get("/api/get_locations/search", async (req, res) => {
             }
         });
 
-        return res.json({ locations, reviews });
-    } 
-    catch (err) 
-    {
+        return res.json({ locations: locationsWithSaved, reviews });
+    } catch (err) {
         console.error("Error retrieving locations:", err);
         return res.status(500).json({ message: "Server error" });
     }
@@ -172,61 +204,57 @@ router.get("/api/get_reviews", async (req, res) => {
       return res.status(500).json({ message: "Server error" });
     }
 });
-  
 
-// Edit User
-router.put("/api/edit_user", async (req, res) => {
-    try 
-    {
-        const { email, username, password, zip_code } = req.body;
+// Get Food Items
+router.get("/api/get_fooditems", async (req, res) => {
+  try 
+  {
+    const items = await FoodPrice.findAll({
+        attributes: ['location_name', 'item_name', 'price']
+    });
 
-        if (!username || !password || !email || !zip_code) {
-            return res.status(400).json({ error: "username and password are required." });
-        }
-        
-        const updatedAt = new Date()
+    // Format the price as "$X.XX" to match frontend expectations
+    const formatted = items.map(item => ({
+        location: item.location_name,
+        item: item.item_name,
+        price: `$${item.price.toFixed(2)}`
+    }));
 
-        // Insert into the database
-        const newUser = await client.query(
-            'INSERT INTO "Users" (username, email, password, zip_code, "updatedAt") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [username, email, password, zip_code, updatedAt]
-        );
-        res.status(201).json({ message: "User added successfully!", user: newUser.rows[0] });
-    } 
-    catch (err) 
-    {
-        console.error(err.message);
-        res.status(500).json({ error: "Unable to add user." });
-    }
+    return res.json(formatted);
+  } 
+  catch (err) 
+  {
+    console.error("Error fetching food items:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 // Create User
 router.post('/api/new_user', async (req, res) => {
-    try 
-    {
-        console.log(req.body);
+    try {
         const { email, username, password, zip_code } = req.body;
 
         if (!username || !password || !email || !zip_code) {
-            return res.status(400).json({ error: "username and password are required." });
+            return res.status(400).json({ error: "All fields are required." });
         }
-        
-        const createdAt = new Date()
 
-        // Encrpyt password
+        // Encrypt password
         const hashedPassword = await bcrypt.hash(password, 10);
+        const createdAt = new Date();
 
-        // Insert into the database
+        // Insert into DB
         const newUser = await client.query(
             'INSERT INTO "Users" (username, email, password, zip_code, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
             [username, email, hashedPassword, zip_code, createdAt, createdAt]
         );
 
+
         res.redirect("/");
-    } 
-    catch (err) 
-    {
-        console.error(err.message);
+    } catch (err) {
+        console.error("DB Insert Error:", err);
+        if (err.code === '23505') { // PostgreSQL error code for unique violation
+            return res.status(400).json({ error: "Email or username already exists." });
+        }
         res.status(500).json({ error: "Unable to add user." });
     }
 });
@@ -252,7 +280,7 @@ router.post('/api/signin', async (req, res) => {
         } 
             
         // Generate JWT Token (Fix this later)
-        const jwtSecret = process.env.JWT_SECRET || "fake_key";
+        const jwtSecret = process.env.JWT_SECRET;
 
         // const token = jwt.sign({ userId: user.user_id }, jwtSecret, { expiresIn: "1h" });
 
@@ -272,7 +300,7 @@ router.post('/api/request_new_password', async (req, res) => {
     const { email, username, zip_code } = req.body;
 
     try {
-        const user = await User.findOne({ where: { email, username, zip_code } });
+        const user = await User.findOne({ where: { email, username } });
 
         if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -286,13 +314,16 @@ router.post('/api/request_new_password', async (req, res) => {
         });
 
         // Send email
-        const resetLink = `https://domain.com/reset-password?token=${token}`; // 
+        const resetLink = `http://localhost:3000/reset-password?token=${token}`; // 
         
         const transporter = nodemailer.createTransport({
-            service: "gmail",
+            // host: 'smtp.gmail.com',
+            // port: 456,
+            // secure: true,
+            service: 'gmail',
             auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
+                user: process.env.MAIL_USER,
+                pass: process.env.MAIL_PASS
             }
         });
 
@@ -311,16 +342,46 @@ router.post('/api/request_new_password', async (req, res) => {
 
 });
 
+// Passwrod Reset
+router.post('/reset-password', async (req, res) => {
+    const { token, password1, password2 } = req.body;
+    
+    console.log(token);
+    if (password1 != password2)
+    {
+        return res.status(400).send("Passwords do not match");
+    }
+
+    const user = await User.findOne({
+        where: {
+        reset_token: token,
+        reset_token_expiry: { [Op.gt]: Date.now() }
+        }
+    });
+
+    if (!user) return res.status(400).send("Invalid or expired token");
+
+    // Hash and update the password
+    const hashedPassword = await bcrypt.hash(password1, 10);
+    await user.update({
+        password: hashedPassword,
+        reset_token: null,
+        reset_token_expiry: null
+    });
+
+    return res.send("Password reset successfully.");
+});
+
+
 // Toggle FoodLocation Save/Unsave
 router.post("/api/toggle_location", async (req, res) => {
     try {
-        
         const authHeader = req.headers.authorization;
         if (!authHeader) return res.status(401).json({ message: "Unauthorized: No token provided" });
 
         // verify token
         const token = authHeader.split(" ")[1];
-        const decoded = jwt.verify(token, "fake_key");
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.userId;
 
         // Get name and address from request body
@@ -374,11 +435,9 @@ router.post("/api/toggle_location", async (req, res) => {
 // Save Review
 router.post("/api/review", async (req, res) => {
     try {
-        console.log("BODY:", JSON.stringify(req.body));
         // Extract data from request body
         const { name, token, review, price_rating, quality_rating } = req.body;
-        const decoded = jwt.verify(token, "fake_key", { ignoreExpiration: true }); // Ensure JWT_SECRET is used
-        console.log(decoded);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true }); // Ensure JWT_SECRET is used
         const userId = decoded.userId;
 
         if (!review) {
@@ -410,5 +469,32 @@ router.post("/api/review", async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 });
+
+// Add Food Item
+router.post("/api/add_food_item", async (req, res) => {
+  try {
+    const { itemName, price, location } = req.body;
+
+    if (!itemName || !price || !location) 
+    {
+      return res.status(400).json({ message: "Item name, price, and location are required." });
+    }
+
+
+    // Insert into FoodPrice table
+    const newItem = await FoodPrice.create({
+      item_name: itemName,
+      price: parseFloat(price),
+      location_name: location,
+    });
+
+    res.redirect("/compare");
+    
+  } catch (err) {
+    console.error("Error adding food item:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 module.exports = router;

@@ -50,7 +50,7 @@
     <section id="home">
         <div class="text-container">
             <div class="text">
-                <h1>Welcome to <br><span>NYC Fresh Finder</span></h1>
+                <h1>Welcome to <br><span class="title">NYC Fresh Finder</span></h1>
                 <h2>Find nearby food resources and assistance programs <br> easily and effectively for your community.</h2>
             </div>
             <button id="open-popup" class="start" onclick="openPopup()">Get Started</button>
@@ -80,7 +80,7 @@
                 <button type="submit">Login</button>
                 <p>Don't have an account? <span class="form__toggle" onclick="redirectSignUp(this)">Sign Up</span></p>
             </form>
-            <form action="/api/new_user" method="POST" class="form form--signup">
+            <form action="/api/new_user" method="post" class="form form--signup" id="signupForm">
                 <h2>Sign Up</h2>
                 <input type="email" placeholder="Email" name="email">
                 <input type="text" placeholder = "Username" name="username">
