@@ -1,14 +1,13 @@
 const express = require('express');
 const svgCaptcha = require('svg-captcha');
 const { generateCaptcha, verifyCaptcha } = require('./captchaMiddleware');
-const client = require('../server/database/connection');
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const authenticateToken = require('../routes/authenticateToken');
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
-const { Op } = require("sequelize");
+const { Op, UniqueConstraintError } = require("sequelize");
 
 
 // Import Database Entities
@@ -48,7 +47,6 @@ const authMiddleware = (req, res, next) => {
 /* 
     Load Pages
 */
-
 // Home Page
 router.get('/', (req, res) => {
     res.render('index');
@@ -91,9 +89,7 @@ router.get('/reset-password', async (req, res) => {
 
     // Token is valid, render reset form
     return res.render("reset_password", { token });
-
 });
-
 
 // Get Saved Locations
 router.get("/api/get_saved_locations", authenticateToken, async (req, res) => {
@@ -130,9 +126,8 @@ router.get('/api/locations', async (req, res) => {
       console.error("Error fetching locations:", err);
       res.status(500).json({ message: "Server error" });
     }
-  });
+});
   
-
 // Get Locations on Map Page
 router.get("/api/get_locations/search", authenticateToken, async (req, res) => {
     try {
@@ -196,9 +191,7 @@ router.get("/api/get_reviews", async (req, res) => {
             where: { user_id: userIds }
         });
 
-
         return res.json({ reviews, users });
-  
     } catch (err) {
       console.error("Error getting reviews:", err);
       return res.status(500).json({ message: "Server error" });
@@ -240,19 +233,19 @@ router.post('/api/new_user', async (req, res) => {
 
         // Encrypt password
         const hashedPassword = await bcrypt.hash(password, 10);
-        const createdAt = new Date();
 
-        // Insert into DB
-        const newUser = await client.query(
-            'INSERT INTO "Users" (username, email, password, zip_code, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [username, email, hashedPassword, zip_code, createdAt, createdAt]
-        );
-
+        // Create user via Sequelize (Sequelize will handle createdAt/updatedAt)
+        const newUser = await User.create({
+            username,
+            email,
+            password: hashedPassword,
+            zip_code
+        });
 
         res.redirect("/");
     } catch (err) {
         console.error("DB Insert Error:", err);
-        if (err.code === '23505') { // PostgreSQL error code for unique violation
+        if (err instanceof UniqueConstraintError || err.name === 'SequelizeUniqueConstraintError') { // Sequelize unique violation
             return res.status(400).json({ error: "Email or username already exists." });
         }
         res.status(500).json({ error: "Unable to add user." });
@@ -278,7 +271,7 @@ router.post('/api/signin', async (req, res) => {
         {
             return res.status(400).json({ message: "Invalid credentials" });  
         } 
-            
+        
         // Generate JWT Token (Fix this later)
         const jwtSecret = process.env.JWT_SECRET;
 
@@ -339,7 +332,6 @@ router.post('/api/request_new_password', async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: "Server error" });
     }
-
 });
 
 // Passwrod Reset
