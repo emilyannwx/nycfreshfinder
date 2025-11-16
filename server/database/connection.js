@@ -1,6 +1,22 @@
-require('dotenv').config();
+require('dotenv').config(); 
 const {Client} = require('pg')
+const { Sequelize } = require('sequelize');
 
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  dialectOptions: {
+    ssl: process.env.NODE_ENV === 'production'
+      ? { require: true, rejectUnauthorized: false }
+      : false
+  }
+});
+
+module.exports = sequelize;
+
+
+
+
+/*
 const connectionString = process.env.DATABASE_URL || `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB}`;
 
 const client = new Client({
@@ -26,7 +42,7 @@ const client = new Client({
 console.log("DB_PASS is:", typeof process.env.DB_PASSWORD, process.env.DB_PASSWORD);
 
 client.connect();
-*/
+//
 
 // client.query(`Select * from "Users"`, (err, res) => {
 //     if(!err)
@@ -44,3 +60,4 @@ client.connect();
 
 module.exports = client;
 
+*/
