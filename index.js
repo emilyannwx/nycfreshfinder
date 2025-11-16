@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 //const client = require('./server/database/connection')
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session); 
 
 app.use(express.static("assets"));
 app.use(express.urlencoded({ extended: true }));
