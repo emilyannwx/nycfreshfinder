@@ -1,6 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
-const client = require('./server/database/connection')
+//const client = require('./server/database/connection')
 const session = require('express-session');
 
 app.use(express.static("assets"));

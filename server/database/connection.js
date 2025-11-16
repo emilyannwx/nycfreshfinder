@@ -1,6 +1,17 @@
 require('dotenv').config();
 const {Client} = require('pg')
 
+const connectionString = process.env.DATABASE_URL || `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB}`;
+
+const client = new Client({
+  connectionString,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+});
+
+client.connect().catch(err => {
+  console.error('Postgres client connect error', err);
+});
+/*
 const client = new Client({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
@@ -15,6 +26,7 @@ const client = new Client({
 console.log("DB_PASS is:", typeof process.env.DB_PASSWORD, process.env.DB_PASSWORD);
 
 client.connect();
+*/
 
 // client.query(`Select * from "Users"`, (err, res) => {
 //     if(!err)
@@ -28,6 +40,7 @@ client.connect();
 //     }
 //     client.end;
 // })
+
 
 module.exports = client;
 

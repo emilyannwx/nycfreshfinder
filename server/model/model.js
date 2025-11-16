@@ -1,6 +1,40 @@
 const { Sequelize, DataTypes } = require('sequelize');
 require('dotenv').config();
 
+const dbUrl = process.env.DATABASE_URL ||
+  (process.env.DB ? process.env.DB : null);
+
+let sequelize;
+
+if (dbUrl) {
+  sequelize = new Sequelize(dbUrl, {
+    dialect: 'postgres',
+    protocol: 'postgres',
+    logging: false,
+    dialectOptions: process.env.NODE_ENV === 'production' ? {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    } : {}
+  });
+} else {
+  // fallback to individual env vars
+  sequelize = new Sequelize(process.env.DB, process.env.DB_USER, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
+    dialect: 'postgres',
+    logging: false,
+    dialectOptions: process.env.NODE_ENV === 'production' ? {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    } : {}
+  });
+}
+
+/*
+// old
 // Initialize Sequelize
 const sequelize = new Sequelize(process.env.DB, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
@@ -14,7 +48,7 @@ const sequelize = new Sequelize(process.env.DB, process.env.DB_USER, process.env
   },
 
 });
-
+*/
 // Define User Model
 const User = sequelize.define('User', {
   user_id: { 
@@ -270,7 +304,21 @@ SavedLocation.belongsTo(FoodLocation, { foreignKey: 'location_id' });
 
 FoodPrice.belongsTo(FoodLocation, { foreignKey: 'location_id' });
 
-// Sync Database (Creates Tables)
+// Sync only when not in production to avoid unintended changes
+const syncDatabase = async () => {
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      await sequelize.sync({ alter: true });
+      console.log("All tables synced successfully!");
+    } else {
+      console.log("Skipping automatic sequelize.sync() in production.");
+    }
+  } catch (error) {
+    console.error("Error syncing database:", error);
+  }
+};
+/*
+// old Sync Database (Creates Tables)
 const syncDatabase = async () => {
   try {
     await sequelize.sync({ schema: 'public', alter: true });
@@ -279,7 +327,7 @@ const syncDatabase = async () => {
     console.error("Error syncing database:", error);
   }
 };
-
+*/
 syncDatabase();
 
 // Export Models and Sequelize Instance
