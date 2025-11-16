@@ -18,7 +18,7 @@ app.use(session({
     resave: false,
     saveUninitialized: true
 }));
-*/
+
 // Use environment-backed session secret
 app.use(session({
     secret: process.env.SESSION_SECRET || 'local-dev-secret',
@@ -27,12 +27,25 @@ app.use(session({
 }));
 
 app.use('/', router);
+*/
 
 //app.listen(3000);
 
-/* 
-http://localhost:3000/
-*/
+// Use Postgres-backed session store
+app.use(session({
+  store: new pgSession({
+    conString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false } // required for Render Postgres
+  }),
+  secret: process.env.SESSION_SECRET || 'local-dev-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: true, // ensures cookies are only sent over HTTPS
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
+  }
+}));
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
