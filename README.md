@@ -2,7 +2,7 @@
 
 A collaborative project by **Emily**, **Michael**, and **Satyam**.
 
-NYC Fresh Finder is a web application designed to help NYC residents locate **healthy**, **affordable**, and **accessible** food options. Through user-submitted item cards with prices and store details, interactive mapping, and community resources, the platform supports informed food choices—especially in areas affected by food deserts.
+NYC Fresh Finder is a web application designed to help NYC residents locate **healthy**, **affordable**, and **accessible** food options. Through user-submitted item cards with prices and store details, interactive mapping, and community resources, the platform supports informed food choices, especially in areas affected by food deserts.
 
 ---
 
@@ -22,7 +22,7 @@ NYC Fresh Finder is a web application designed to help NYC residents locate **he
 
 ## Project Overview
 
-Many NYC residents—especially parents—face difficulty accessing fresh groceries. Corner stores lack produce, and supermarkets may be costly or require long transit trips.
+Many NYC residents face difficulty accessing fresh groceries. Corner stores lack produce, and supermarkets may be costly or require long transit trips.
 
 NYC Fresh Finder provides:  
 - Real-time food access visibility  
