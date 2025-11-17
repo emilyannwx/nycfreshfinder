@@ -113,9 +113,8 @@ NYC datasets were more limited than expected. This required creative redesigns, 
 
 ---
 
-## Presentation Slides
-A section for presentation slides will be added here.  
-(You can add a link or screenshots when ready.)
+## Presentation Slides 
+[NYC Fresh Finder Slides](./NYCFreshFinder_Final_Presentation.pdf).
 
 ---
 
