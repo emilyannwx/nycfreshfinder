@@ -1,11 +1,7 @@
-from google.colab import drive
-drive.mount('/content/drive')
-
 import csv
 import json
-import os
 
-input_file = '/content/drive/MyDrive/Capstone/capstone_data/combined_nyc_data.csv'
+input_file = 'data/combined_nyc_data.csv'
 output_file = "nyc_data.json"
 
 data = []
@@ -30,18 +26,3 @@ with open(input_file, newline='', encoding='utf-8') as csvfile:
 with open(output_file, "w") as jsonfile:
     json.dump(data, jsonfile, indent=4)
 
-
-import os
-
-input_file_path = '/content/drive/MyDrive/Capstone/capstone_data/combined_nyc_data.csv'
-notebook_directory = os.path.dirname(input_file_path)
-
-output_file_name = "nyc_data.json"
-output_file_path = os.path.join(notebook_directory, output_file_name)
-
-with open(output_file_path, "w") as jsonfile:
-    json.dump(data, jsonfile, indent=4)
-
-print(f"JSON data saved to: {output_file_path}")
-print(f"Contents of the output directory:")
-!ls -l "{notebook_directory}"
